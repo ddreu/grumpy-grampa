@@ -53,7 +53,7 @@ export async function fetchStoreLogo(filename = "Black_Wordmark.svg") {
 // ----------------------
 export const GET_PRODUCTS = gql`
   query getProducts {
-    products(first: 10) {
+    products(first: 20) {
       edges {
         node {
           id
