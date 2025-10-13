@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap");
-
+@import "swiper/css";
+@import "swiper/css/navigation";
 @import "tailwindcss";
 
 :root {
@@ -7,6 +8,44 @@
   --foreground: #171717; */
   --background: theme(colors.neutral.50); /* page background */
   --foreground: theme(colors.neutral.950); /* main text color */
+}
+
+.hero-swiper {
+  perspective: 1000px;
+}
+.hero-swiper .swiper-slide {
+  transform-style: preserve-3d;
+}
+
+/* Override Swiper's default navigation styles */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  display: none !important; /* Hide default blue Swiper arrows */
+}
+
+/* Optional: Ensure your Lucide icons stay white */
+.swiper-button-next svg,
+.swiper-button-prev svg {
+  color: white !important;
+  stroke: white !important;
+}
+
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  overflow: visible !important;
+}
+
+.hero-swiper,
+.hero-swiper :where(.swiper-wrapper, .swiper-slide) {
+  overflow: visible !important;
+}
+
+/* for swiper internals to overflow */
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  overflow: visible !important;
 }
 
 @theme inline {

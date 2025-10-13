@@ -6,7 +6,7 @@ import { ShoppingCart, Search } from "lucide-react";
 
 export function Navbar() {
   const [menuItems, setMenuItems] = useState([]);
-  const pathname = usePathname(); // ✅ added
+  const pathname = usePathname();
 
   useEffect(() => {
     async function getMenu() {
@@ -17,7 +17,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="bg-neutral-50 border-b py-4">
+    <header className="bg-neutral-50 border-b py-3">
       <div className="container mx-auto flex items-center justify-between px-8 lg:py-4 lg:px-16">
         {/* Left: Logo */}
         <div>
@@ -29,7 +29,7 @@ export function Navbar() {
         </div>
 
         {/* Center: Menu */}
-        <nav className="bg-neutral-200 rounded-full px-3 py-3 shadow-sm">
+        <nav className="bg-neutral-200 rounded-full px-4 py-3 shadow-sm">
           <ul className="flex items-center gap-6 text-sm font-medium text-neutral-950">
             {menuItems.map((item) => {
               // ✅ check if current path matches link
