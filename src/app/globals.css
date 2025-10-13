@@ -30,6 +30,24 @@
   stroke: white !important;
 }
 
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  overflow: visible !important;
+}
+
+.hero-swiper,
+.hero-swiper :where(.swiper-wrapper, .swiper-slide) {
+  overflow: visible !important;
+}
+
+/* for swiper internals to overflow */
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  overflow: visible !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

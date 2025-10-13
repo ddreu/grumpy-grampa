@@ -28,16 +28,46 @@ export default function HeroImage() {
     );
   }
 
+  // handle looping offset properly
+  const getOffset = (index, activeIndex, total) => {
+    let offset = index - activeIndex;
+    if (offset > total / 2) offset -= total;
+    if (offset < -total / 2) offset += total;
+    return offset;
+  };
+
+  // arch transform logic with lifted 2nd and 4th
+  const getTransform = (offset) => {
+    const clamped = Math.max(-2, Math.min(2, offset)); // only first 2 per side tilt
+    let rotate = 0;
+    let translateY = Math.abs(clamped) * 40; // base downward movement
+    let scale = clamped === 0 ? 1.05 : 1; // focus on center
+
+    if (clamped < 0) rotate = clamped === -2 ? -11 : -5; // tilt left
+    if (clamped > 0) rotate = clamped === 2 ? 11 : 5; // tilt right
+
+    // lift 2nd and 4th slightly upward to form a smooth arch
+    if (Math.abs(clamped) === 1) translateY -= 20;
+
+    return `rotate(${rotate}deg) translateY(${translateY}px) scale(${scale})`;
+  };
+
   return (
-    <div className="bg-neutral-50 py-12 relative w-full">
+    <div className="bg-neutral-50 pt-10 px-0 pb-32 relative w-full overflow-visible">
       {/* Navigation buttons */}
-      <div className="absolute left-30 top-1/2 z-10 -translate-y-1/2">
-        <button className="swiper-button-prev bg-black text-white border-1 border-white rounded-full p-3 shadow-lg">
+      <div
+        className="absolute left-44 top-1/2 z-10 -translate-y-1/2"
+        style={{ transform: "rotate(-17deg)" }}
+      >
+        <button className="swiper-button-prev bg-black text-white border border-white rounded-full p-3 shadow-lg hover:scale-110 transition">
           <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
-      <div className="absolute right-30 top-1/2 z-10 -translate-y-1/2">
-        <button className="swiper-button-next bg-black text-white border-1 border-white rounded-full p-3 shadow-lg">
+      <div
+        className="absolute right-44 top-1/2 z-10 -translate-y-1/2"
+        style={{ transform: "rotate(17deg)" }}
+      >
+        <button className="swiper-button-next bg-black text-white border border-white rounded-full p-3 shadow-lg hover:scale-110 transition">
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>
@@ -49,7 +79,7 @@ export default function HeroImage() {
           nextEl: ".swiper-button-next",
           prevEl: ".swiper-button-prev",
         }}
-        spaceBetween={20}
+        spaceBetween={8}
         slidesPerView={5}
         centeredSlides
         loop
@@ -61,19 +91,24 @@ export default function HeroImage() {
           const price = product.variants?.[0]?.price?.amount;
           const currency = product.variants?.[0]?.price?.currencyCode;
 
+          const offset = getOffset(index, activeIndex, products.length);
+          const transform = getTransform(offset);
           const isActive = index === activeIndex;
 
           return (
             <SwiperSlide key={product.id}>
-              {/* Outer wrapper for border and spacing */}
               <div
-                className={`p-1 rounded-[5rem] transition-all duration-300 ${
+                className={`p-1 rounded-[5rem] transition-all duration-500 ${
                   isActive
                     ? "border-2 border-dashed border-neutral-950"
                     : "border-transparent"
                 }`}
+                style={{
+                  transform,
+                  transformOrigin: "center bottom",
+                  transition: "transform 0.5s ease, border-color 0.3s ease",
+                }}
               >
-                {/* Inner container for image and overlay */}
                 <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[5rem] transition-all duration-300">
                   <Image
                     src={image}

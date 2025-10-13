@@ -6,7 +6,7 @@ import { ShoppingCart, Search } from "lucide-react";
 
 export function Navbar() {
   const [menuItems, setMenuItems] = useState([]);
-  const pathname = usePathname(); // ✅ added
+  const pathname = usePathname();
 
   useEffect(() => {
     async function getMenu() {
