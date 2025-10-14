@@ -41,15 +41,23 @@ export default function HeroImage() {
     const clamped = Math.max(-2, Math.min(2, offset)); // only first 2 per side tilt
     let rotate = 0;
     let translateY = Math.abs(clamped) * 40; // base downward movement
-    let scale = clamped === 0 ? 1.05 : 1; // focus on center
+    // let scale = clamped === 0 ? 1.05 : 1;
 
     if (clamped < 0) rotate = clamped === -2 ? -11 : -5; // tilt left
     if (clamped > 0) rotate = clamped === 2 ? 11 : 5; // tilt right
 
     // lift 2nd and 4th slightly upward to form a smooth arch
-    if (Math.abs(clamped) === 1) translateY -= 20;
+    if (Math.abs(clamped) === 1) translateY -= 25;
+    // lift 1st and 5th
+    if (clamped === -2 || clamped === 2) translateY -= 15;
 
-    return `rotate(${rotate}deg) translateY(${translateY}px) scale(${scale})`;
+    // Lift all non-center slides slightly to form arch
+    // if (clamped !== 0) {
+    //   translateY -= 35; // lifts up
+    // }
+
+    // return `rotate(${rotate}deg) translateY(${translateY}px) scale(${scale})`;
+    return `rotate(${rotate}deg) translateY(${translateY}px)`;
   };
 
   return (
@@ -98,9 +106,9 @@ export default function HeroImage() {
           return (
             <SwiperSlide key={product.id}>
               <div
-                className={`p-1 rounded-[5rem] transition-all duration-500 ${
+                className={`p-1 rounded-[6.5rem] transition-all duration-500 ${
                   isActive
-                    ? "border-2 border-dashed border-neutral-950"
+                    ? "border-3 border-dashed border-neutral-950"
                     : "border-transparent"
                 }`}
                 style={{
@@ -109,7 +117,7 @@ export default function HeroImage() {
                   transition: "transform 0.5s ease, border-color 0.3s ease",
                 }}
               >
-                <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[5rem] transition-all duration-300">
+                <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[6rem] transition-all duration-300">
                   <Image
                     src={image}
                     alt={product.title}

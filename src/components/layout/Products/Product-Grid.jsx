@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import PaginationButtons from "../Buttons/PaginationsButton";
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
@@ -55,7 +56,7 @@ export default function ProductGrid() {
   ];
 
   return (
-    <section className="bg-[#f8f8f8] text-[#111] py-12">
+    <section className="text-[#111] py-12">
       <div className="max-w-7xl mx-auto">
         {/* ===== Header ===== */}
         <div className="mb-10">
@@ -173,21 +174,7 @@ export default function ProductGrid() {
           })}
         </div>
 
-        {/* ===== Pagination / Navigation Buttons ===== */}
-        <div className="flex justify-center items-center gap-6 mt-10">
-          {/* Previous Button */}
-          <button className="px-6 py-2 border border-neutral-950 text-neutral-950 rounded-full font-medium hover:bg-neutral-100 transition">
-            Previous
-          </button>
-
-          {/* Wider Progress Bar */}
-          <div className="w-150 h-[1px] bg-neutral-300"></div>
-
-          {/* Next Button */}
-          <button className="px-6 py-2 bg-neutral-950 text-neutral-50 rounded-full font-medium hover:bg-neutral-800 transition">
-            Next
-          </button>
-        </div>
+        <PaginationButtons />
       </div>
     </section>
   );

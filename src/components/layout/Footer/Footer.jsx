@@ -1,4 +1,7 @@
-// components/Footer.jsx
+"use client";
+import Image from "next/image";
+import Flag from "react-world-flags";
+
 export default function Footer() {
   return (
     <footer className="bg-neutral-950 text-neutral-50 text-sm">
@@ -18,17 +21,33 @@ export default function Footer() {
           <div className="mt-6">
             <p className="font-medium mb-3">Follow Us On</p>
             <div className="flex gap-4 text-neutral-50">
-              <a href="#" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="hover:opacity-80 transition"
+              >
+                <Image src="/fb.svg" alt="Facebook" width={20} height={20} />
               </a>
-              <a href="#" aria-label="Instagram">
-                <i className="fab fa-instagram"></i>
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="hover:opacity-80 transition"
+              >
+                <Image src="/ig.svg" alt="Instagram" width={20} height={20} />
               </a>
-              <a href="#" aria-label="TikTok">
-                <i className="fab fa-tiktok"></i>
+              <a
+                href="#"
+                aria-label="X"
+                className="hover:opacity-80 transition"
+              >
+                <Image src="/x.svg" alt="X" width={20} height={20} />
               </a>
-              <a href="#" aria-label="LinkedIn">
-                <i className="fab fa-linkedin-in"></i>
+              <a
+                href="#"
+                aria-label="LinkedIn"
+                className="hover:opacity-80 transition"
+              >
+                <Image src="/in.svg" alt="LinkedIn" width={20} height={20} />
               </a>
             </div>
           </div>
@@ -115,11 +134,7 @@ export default function Footer() {
             Merchously.
           </p>
           <div className="flex items-center gap-2 mt-3 md:mt-0">
-            <img
-              src="/us-flag.svg"
-              alt="United States"
-              className="h-4 w-auto"
-            />
+            <Flag code="US" className="h-4 w-auto" alt="United States" />
             <span>United States</span>
             <span className="text-neutral-700">▼</span>
           </div>
