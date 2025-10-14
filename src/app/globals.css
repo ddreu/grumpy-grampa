@@ -6,7 +6,7 @@
 :root {
   /* --background: #ffffff;
   --foreground: #171717; */
-  --background: theme(colors.neutral.50); /* page background */
+  --background: theme(colors.neutral.100); /* page background */
   --foreground: theme(colors.neutral.950); /* main text color */
 }
 
