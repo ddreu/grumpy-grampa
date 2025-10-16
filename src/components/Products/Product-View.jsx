@@ -1,16 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import {
-  Star,
-  Heart,
-  ShoppingCart,
-  Truck,
-  Package,
-  ShareIcon,
-  Share,
-  Share2,
-} from "lucide-react";
+import { Star, Truck, Package, ShareIcon, Share, Share2 } from "lucide-react";
 import Link from "next/link";
 import {
   Breadcrumb,
@@ -20,6 +11,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { fetchProduct } from "@/lib/shopify";
+import Compare from "../icons/Compare";
+import Heart from "../icons/Heart";
 
 export default function ProductView({ product }) {
   const [selectedImg, setSelectedImg] = useState(0);
@@ -200,13 +193,13 @@ export default function ProductView({ product }) {
 
           {/* Quick actions */}
           <div className="flex items-center gap-3 text-sm mb-6">
-            <button className="flex items-center  gap-1 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
+            <button className="flex items-center  gap-2 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
               <Heart size={16} /> Add to Wishlist
             </button>
-            <button className="flex items-center gap-1 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
-              <ShoppingCart size={16} /> Add to Compare
+            <button className="flex items-center gap-2 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
+              <Compare size={16} /> Add to Compare
             </button>
-            <button className="flex items-center gap-1 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
+            <button className="flex items-center gap-2 bg-neutral-200 text-neutral-950 px-4 py-2 rounded-full hover:bg-neutral-200 transition">
               <Share2 size={16} /> Share
             </button>
           </div>
