@@ -8,7 +8,7 @@ export default function CartIcon({ size = 28, className = "" }) {
       width={size}
       height={size}
       fill={`url(#${gradientId})`}
-      className={className}
+      className={`cursor-pointer ${className || ""}`}
     >
       <defs>
         <linearGradient

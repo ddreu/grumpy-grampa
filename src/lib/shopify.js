@@ -100,6 +100,67 @@ export const GET_MENU = gql`
   }
 `;
 
+// ----------------------
+// Query to get single product by handle
+// ----------------------
+export const GET_PRODUCT_BY_HANDLE = gql`
+  query getProductByHandle($handle: String!) {
+    product(handle: $handle) {
+      id
+      title
+      handle
+      description
+      images(first: 10) {
+        edges {
+          node {
+            url
+            altText
+          }
+        }
+      }
+      variants(first: 5) {
+        edges {
+          node {
+            id
+            title
+            price {
+              amount
+              currencyCode
+            }
+            availableForSale
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * Fetch single product by handle
+ */
+export async function fetchProduct(handle) {
+  if (!handle) {
+    console.error("fetchProduct called without a valid handle");
+    return null;
+  }
+
+  try {
+    const data = await shopify.request(GET_PRODUCT_BY_HANDLE, { handle });
+    const product = data.product;
+
+    if (!product) return null;
+
+    // Flatten edges
+    const images = product.images.edges.map((edge) => edge.node);
+    const variants = product.variants.edges.map((edge) => edge.node);
+
+    return { ...product, images, variants };
+  } catch (error) {
+    console.error(`Error fetching product ${handle}:`, error);
+    return null;
+  }
+}
+
 /**
  * Fetch menu items by handle (default: "main-menu")
  * @param {string} handle - The menu handle in Shopify
