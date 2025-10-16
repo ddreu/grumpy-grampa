@@ -1,9 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchProducts } from "../../lib/shopify";
+import { ArrowDown, Star } from "lucide-react";
+import CartIcon from "../icons/Cart";
+import Link from "next/link";
 
 export function Product() {
   const [products, setProducts] = useState([]);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     async function getProducts() {
@@ -13,49 +17,126 @@ export function Product() {
     getProducts();
   }, []);
 
-  if (products.length === 0) return <p>Loading products...</p>;
+  if (products.length === 0)
+    return (
+      <div className="flex justify-center items-center py-20 text-gray-500">
+        Loading products...
+      </div>
+    );
+
+  // limit to 8 products if not showing all
+  const displayedProducts = showAll ? products : products.slice(0, 8);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {products.map((product) => {
-        const variant = product.variants[0];
+    <section className="max-w-7xl mx-auto mt-8 py-10">
+      {/* Category Header */}
+      <div className="mb-12">
+        <h1 className="text-3xl mb-8 md:text-4xl font-bold text-neutral-900">
+          Grandparents
+        </h1>
+        <div className="flex gap-3 mt-3">
+          <button className="px-5 cursor-pointer py-2 rounded-full bg-black text-white font-medium">
+            Grampa
+          </button>
+          <button className="px-5 cursor-pointer py-2 rounded-full border border-neutral-950 text-neutral-900 font-medium hover:bg-gray-300">
+            Gramma
+          </button>
+        </div>
+      </div>
 
-        return (
-          <div key={product.id} className="border p-4 rounded shadow">
-            {product.images.length > 0 && (
-              <div className="mb-4 flex gap-2 overflow-x-auto">
-                {product.images.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img.url}
-                    alt={img.altText || product.title}
-                    className="w-24 h-24 object-cover rounded"
-                  />
-                ))}
-              </div>
-            )}
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {displayedProducts.map((product) => {
+          const variant = product.variants[0];
+          const image = product.images[0]?.url;
+          const oldPrice = (
+            parseFloat(variant?.price?.amount || 0) * 1.2
+          ).toFixed(2);
+          const discount = Math.floor(Math.random() * 10) + 14;
 
-            <h2 className="text-xl text-gray-700 font-bold mb-2">
-              {product.title}
-            </h2>
-
-            {variant && variant.price && (
-              <p className="text-gray-700 mb-2">
-                Price: {variant.price.amount} {variant.price.currencyCode}
-              </p>
-            )}
-
-            <p className="text-gray-500 mb-2">Handle: {product.handle}</p>
-
-            <a
-              href={`/products/${product.handle}`}
-              className="text-blue-500 hover:underline"
+          return (
+            <Link
+              key={product.id}
+              href={`/Product/${product.handle}`} //  dynamic link to product page
+              className="group"
             >
-              View Product
-            </a>
-          </div>
-        );
-      })}
-    </div>
+              <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
+                {/* Discount Badge */}
+                <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  {discount}% OFF
+                </span>
+
+                {/* Product Image */}
+                <div className="aspect-[3/4] w-full overflow-hidden">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="bg-gray-100 h-full w-full" />
+                  )}
+                </div>
+
+                {/* Info Section */}
+                <div className="p-5">
+                  <div className="flex items-center text-sm text-yellow-500 mb-1">
+                    <Star size={14} fill="currentColor" />
+                    <p className="ml-1 text-neutral-800">
+                      5.0{" "}
+                      <span className="text-gray-400 text-xs">
+                        (260 Reviews)
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Title + Price + Cart */}
+                  <div className="flex justify-between items-center text-neutral-950">
+                    <div>
+                      <h3 className="font-semibold text-lg">{product.title}</h3>
+                      <div>
+                        <span className="text-[17px] font-bold text-neutral-900">
+                          ${parseFloat(variant?.price?.amount).toFixed(2)}
+                        </span>{" "}
+                        <span className="text-[14px] text-gray-400 line-through">
+                          ${oldPrice}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Cart Button */}
+                    <button
+                      className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center"
+                      onClick={(e) => e.preventDefault()} // ✅ Prevent link navigation when clicking cart
+                    >
+                      <CartIcon size={26} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Show More Button */}
+      {products.length > 8 && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="flex items-center gap-2 px-8 py-3 border border-neutral-950 text-neutral-950 rounded-full hover:bg-neutral-950 hover:text-white transition-colors duration-200 text-md cursor-pointer font-medium"
+          >
+            {showAll ? "Show Less" : "Show More"}
+            <ArrowDown
+              size={16}
+              className={`transition-transform duration-300 ${
+                showAll ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

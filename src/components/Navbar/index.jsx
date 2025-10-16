@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  ShoppingCart,
   Search,
   ChevronDown,
   Shirt,
@@ -20,7 +19,7 @@ export function Navbar() {
 
   return (
     <header className="py-3">
-      <div className="container mx-auto flex items-center justify-between px-8 lg:py-4 lg:px-22">
+      <div className="container mx-auto z-20 flex items-center justify-between px-8 lg:py-4 lg:px-22">
         {/* Left: Logo */}
         <div>
           <img
@@ -59,7 +58,7 @@ export function Navbar() {
                   {/* Shop Dropdown */}
                   {item.dropdown && (
                     <ul
-                      className={`absolute left-1/2 w-50 -translate-x-1/2 top-full mt-2 bg-neutral-50 shadow-md rounded-xl overflow-hidden transition-all duration-300 ${
+                      className={`absolute z-20 left-1/2 w-50 -translate-x-1/2 top-full mt-2 bg-neutral-50 shadow-md rounded-xl overflow-hidden transition-all duration-300 ${
                         shopOpen
                           ? "opacity-100 visible translate-y-0"
                           : "opacity-0 invisible translate-y-2"
@@ -122,7 +121,7 @@ export function Navbar() {
 
         {/* Right: Icons */}
         <div className="flex items-center gap-5 text-sm font-medium">
-          <button className="hover:text-neutral-900 text-neutral-950 transition">
+          <button className="hover:text-neutral-900 cursor-pointer text-neutral-950 transition">
             <Search size={18} />
           </button>
 
