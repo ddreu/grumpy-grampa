@@ -1,5 +1,6 @@
 "use client";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function HeroText() {
   return (
@@ -13,7 +14,7 @@ export default function HeroText() {
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl md:text-4xl font-bold text-neutral-950 mb-2">
+        <h1 className="text-4xl md:text-5xl font-bold text-neutral-950 mb-5">
           We Make Retirement Look Real Good
         </h1>
 
@@ -24,12 +25,14 @@ export default function HeroText() {
         </p>
 
         {/* Button */}
-        <button className="bg-neutral-950 text-neutral-50 rounded-full px-4 py-2 flex items-center mx-auto hover:bg-neutral-900 transition">
-          Shop Collection
-          <span className="ml-3 w-9 h-9 flex items-center justify-center bg-white rounded-full">
-            <ArrowRight className="w-4 h-4 text-neutral-950" />
-          </span>
-        </button>
+        <Link href="/Shop" className="inline-block">
+          <button className="bg-neutral-950 cursor-pointer text-neutral-50 rounded-full px-4 py-2 flex items-center mx-auto hover:bg-neutral-900 transition">
+            Shop Collection
+            <span className="ml-3 cursor-pointer w-9 h-9 flex items-center justify-center bg-white rounded-full">
+              <ArrowRight className="w-4 h-4 text-neutral-950" />
+            </span>
+          </button>
+        </Link>
       </div>
     </div>
   );

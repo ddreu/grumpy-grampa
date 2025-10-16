@@ -8,28 +8,30 @@ import {
   Filter,
   Heart,
   Star,
+  Box,
   User,
   Gift,
   Home,
-  Box,
 } from "lucide-react";
 import PaginationButtons from "../Buttons/PaginationsButton";
 import CartIcon from "@/components/icons/Cart";
 import Link from "next/link";
 
-export default function ProductGrid({
-  title = "Our Products",
-  subtitle = "",
-  tabs = [], // array of { name: string, icon: ReactComponent }
-  showFilter = true,
-  className = "",
-  viewAllUrl = "#",
-}) {
+export default function ProductGrid() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [startIndex, setStartIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState("All"); // track active tab
   const itemsPerPage = 4;
-  const ICONS_MAP = { ArrowRight, Filter, Heart, Star, User, Gift, Home, Box };
+
+  const tabIcons = [User, Star, Gift, Home, Box];
+  const tabs = [
+    "Grandparents",
+    "Theme",
+    "Accessories",
+    "Home & Living",
+    "Featured",
+  ];
 
   useEffect(() => {
     async function loadProducts() {
@@ -53,92 +55,95 @@ export default function ProductGrid({
     );
   }
 
-  const displayedProducts = products.slice(
+  // Filter products based on active tab
+  const filteredProducts =
+    activeTab === "All"
+      ? products
+      : products.filter((product) =>
+          product.collections?.some(
+            (collection) =>
+              collection.title.toLowerCase() === activeTab.toLowerCase()
+          )
+        );
+
+  const displayedProducts = filteredProducts.slice(
     startIndex,
     startIndex + itemsPerPage
   );
 
-  const handlePrevious = () =>
+  const handlePrevious = () => {
     setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
-  const handleNext = () =>
+  };
+
+  const handleNext = () => {
     setStartIndex((prev) =>
-      Math.min(prev + itemsPerPage, products.length - itemsPerPage)
+      Math.min(prev + itemsPerPage, filteredProducts.length - itemsPerPage)
     );
+  };
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    setStartIndex(0); // reset carousel when changing tab
+  };
 
   const progress = Math.min(
     100,
-    ((startIndex + itemsPerPage) / products.length) * 100
+    ((startIndex + itemsPerPage) / filteredProducts.length) * 100
   );
 
   return (
-    <section className={`text-[#111] ${className}`}>
+    <section className="text-[#111] py-12">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* ===== Header ===== */}
         <div className="mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col sm:flex-row mb-8 sm:items-end sm:justify-between">
             <div className="text-left">
-              <h1
-                className={`text-4xl font-extrabold tracking-tight font-sans ${
-                  subtitle ? "mb-3" : "mb-0"
-                }`}
-              >
-                {title}
+              <h1 className="text-4xl mb-6 font-extrabold tracking-tight font-sans">
+                Grumpy Grampa’s Treasure Trove
               </h1>
-              {subtitle && <p className="text-gray-600 mt-0">{subtitle}</p>}
+              <p className="text-gray-600 mt-2">
+                Curiously cranky finds, handpicked with old-school charm.
+              </p>
             </div>
 
             <div className="mt-4 sm:mt-0">
-              <Link
-                href={viewAllUrl}
-                className="flex items-center gap-2 px-6 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
-              >
+              <button className="flex items-center gap-2 px-6 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
                 View All <ArrowRight size={20} />
-              </Link>
+              </button>
             </div>
           </div>
 
-          {/* Tabs + Filter */}
-          {(tabs.length > 0 || showFilter) && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
-              {tabs.length > 0 && (
-                <div className="flex flex-wrap justify-start gap-3">
-                  {tabs.map((tab, i) => {
-                    const name = typeof tab === "string" ? tab : tab.name;
-                    const IconComponent =
-                      typeof tab === "object" && tab.icon
-                        ? ICONS_MAP[tab.icon]
-                        : null;
-
-                    return (
-                      <button
-                        key={i}
-                        className={`flex items-center ${
-                          IconComponent ? "gap-2" : ""
-                        } px-4 py-2 text-sm font-medium border rounded-full transition-all ${
-                          i === 0
-                            ? "bg-black text-white"
-                            : "border-gray-300 hover:bg-black hover:text-white"
-                        }`}
-                      >
-                        {IconComponent && <IconComponent size={16} />}
-                        {name}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {showFilter && (
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
-                  <Filter size={16} />
-                  Filter By: All
-                </button>
-              )}
+          {/* ===== Tabs + Filter ===== */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+            <div className="flex flex-wrap justify-start gap-3">
+              {["All", ...tabs].map((tab, i) => {
+                const Icon = tabIcons[i % tabIcons.length];
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleTabClick(tab)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition-all ${
+                      isActive
+                        ? "bg-black text-white"
+                        : "border-gray-300 hover:bg-black hover:text-white"
+                    }`}
+                  >
+                    {i > 0 && <Icon size={16} />}
+                    {tab}
+                  </button>
+                );
+              })}
             </div>
-          )}
+
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
+              <Filter size={16} />
+              Filter By: {activeTab}
+            </button>
+          </div>
         </div>
 
-        {/* Product Grid */}
+        {/* ===== Product Grid ===== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {displayedProducts.map((product) => {
             const img =
@@ -148,9 +153,10 @@ export default function ProductGrid({
             const compareAtPrice = parseFloat(
               variant?.compareAtPrice?.amount || 0
             );
-            const productTitle = product.title || "Untitled";
+            const title = product.title || "Untitled";
             const id = product.id;
             const handle = product.handle;
+
             const discount =
               compareAtPrice > price
                 ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
@@ -170,7 +176,7 @@ export default function ProductGrid({
                     </button>
                     <Image
                       src={img || "/placeholder.png"}
-                      alt={productTitle}
+                      alt={title}
                       width={400}
                       height={400}
                       className="w-full h-[350px] object-cover"
@@ -191,9 +197,7 @@ export default function ProductGrid({
 
                     <div className="flex justify-between items-center">
                       <div>
-                        <h3 className="font-semibold text-lg">
-                          {productTitle}
-                        </h3>
+                        <h3 className="font-semibold text-lg">{title}</h3>
                         <p className="text-l font-bold mt-1">
                           ${price.toFixed(2)}{" "}
                           {discount > 0 && (

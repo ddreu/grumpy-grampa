@@ -3,7 +3,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 
 export default function SearchBar() {
   return (
-    <section className="relative mt-8 max-w-7xl mx-auto bg-black text-white rounded-3xl overflow-hidden flex flex-col items-center justify-center py-20 px-6 text-center">
+    <section className="relative mt-6 mb-8 max-w-7xl mx-auto bg-black text-white rounded-3xl overflow-hidden flex flex-col items-center justify-center py-20 px-6 text-center">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 bg-[url('/lines.svg')] bg-cover bg-center opacity-20 pointer-events-none"

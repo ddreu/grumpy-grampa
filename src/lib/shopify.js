@@ -60,7 +60,6 @@ export const GET_PRODUCTS = gql`
           title
           handle
           images(first: 5) {
-            # Fetch first 5 images
             edges {
               node {
                 url
@@ -76,6 +75,18 @@ export const GET_PRODUCTS = gql`
                   amount
                   currencyCode
                 }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+          collections(first: 5) {
+            edges {
+              node {
+                id
+                title
               }
             }
           }
@@ -118,16 +129,25 @@ export const GET_PRODUCT_BY_HANDLE = gql`
           }
         }
       }
-      variants(first: 5) {
+      variants(first: 10) {
         edges {
           node {
             id
             title
+            availableForSale
+            quantityAvailable
+            selectedOptions {
+              name
+              value
+            }
             price {
               amount
               currencyCode
             }
-            availableForSale
+            compareAtPrice {
+              amount
+              currencyCode
+            }
           }
         }
       }
@@ -188,7 +208,9 @@ export async function fetchProducts() {
       const images = product.images.edges.map((imgEdge) => imgEdge.node);
       // Flatten variants
       const variants = product.variants.edges.map((vEdge) => vEdge.node);
-      return { ...product, images, variants };
+      const collections = product.collections.edges.map((edge) => edge.node);
+
+      return { ...product, images, variants, collections };
     });
   } catch (error) {
     console.error("Error fetching products:", error);

@@ -13,11 +13,13 @@ export default async function ProductPage({ params }) {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center">
-        <Navbar />
-        <p className="text-2xl font-semibold text-neutral-800">
-          Product not found
-        </p>
+      <div className="">
+        <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
+          <Navbar />
+          <p className="text-2xl py-46 text-center font-semibold text-neutral-800">
+            Product not found
+          </p>
+        </main>
         <Footer />
       </div>
     );

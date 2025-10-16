@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Star, Quote, ArrowRight } from "lucide-react";
+import { Star, ArrowRight } from "lucide-react";
 import PaginationButtons from "../../Buttons/PaginationsButton";
 import QuoteIcon from "@/components/icons/Quote";
 
@@ -38,13 +38,15 @@ const reviews = [
 
 export default function CustomerReviews() {
   const [current, setCurrent] = useState(0);
+  const itemsPerPage = 3; // reviews per page
 
-  const next = () =>
-    setCurrent((prev) => (prev + 1) % Math.ceil(reviews.length / 3));
+  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+
+  const next = () => setCurrent((prev) => (prev + 1) % totalPages);
   const prev = () =>
-    setCurrent((prev) =>
-      prev === 0 ? Math.ceil(reviews.length / 3) - 1 : prev - 1
-    );
+    setCurrent((prev) => (prev === 0 ? totalPages - 1 : prev - 1));
+
+  const progress = Math.min(100, ((current + 1) / totalPages) * 100);
 
   return (
     <section className="w-full bg-neutral-50 py-16 px-6 md:px-16">
@@ -68,54 +70,57 @@ export default function CustomerReviews() {
 
       {/* Reviews */}
       <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 mt-10">
-        {reviews.slice(current * 3, current * 3 + 3).map((r) => (
-          <div
-            key={r.id}
-            className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 text-left flex flex-col justify-between h-full"
-          >
-            <div>
-              {/* Gradient quote icon */}
-              <QuoteIcon size={28} className="mb-4" />
+        {reviews
+          .slice(current * itemsPerPage, current * itemsPerPage + itemsPerPage)
+          .map((r) => (
+            <div
+              key={r.id}
+              className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 text-left flex flex-col justify-between h-full"
+            >
+              <div>
+                {/* Gradient quote icon */}
+                <QuoteIcon size={28} className="mb-4" />
 
-              <div className="flex items-center gap-3 mb-3">
-                <Image
-                  src={r.avatar}
-                  alt={r.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover"
-                />
-                <div>
-                  <h3 className="font-semibold text-neutral-900 text-lg">
-                    {r.name}
-                  </h3>
-                  <p className="text-sm text-neutral-500">{r.role}</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <Image
+                    src={r.avatar}
+                    alt={r.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-neutral-900 text-lg">
+                      {r.name}
+                    </h3>
+                    <p className="text-sm text-neutral-500">{r.role}</p>
+                  </div>
                 </div>
+
+                <p className="text-md text-neutral-700 mb-4 leading-relaxed">
+                  “{r.quote}”
+                </p>
               </div>
 
-              <p className="text-md text-neutral-700 mb-4 leading-relaxed">
-                “{r.quote}”
-              </p>
+              {/* Stars always at the bottom */}
+              <div className="flex items-center gap-1 mt-4">
+                {Array.from({ length: r.rating }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={16}
+                    className="fill-yellow-500 text-yellow-500"
+                  />
+                ))}
+                <span className="text-sm text-neutral-700 font-medium ml-1">
+                  {r.rating.toFixed(1)}
+                </span>
+              </div>
             </div>
-
-            {/* Stars always at the bottom */}
-            <div className="flex items-center gap-1 mt-4">
-              {Array.from({ length: r.rating }).map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  className="fill-yellow-500 text-yellow-500"
-                />
-              ))}
-              <span className="text-sm text-neutral-700 font-medium ml-1">
-                {r.rating.toFixed(1)}
-              </span>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
 
-      <PaginationButtons />
+      {/* Pagination Buttons with progress */}
+      <PaginationButtons progress={progress} onPrevious={prev} onNext={next} />
     </section>
   );
 }

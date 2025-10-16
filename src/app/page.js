@@ -8,6 +8,7 @@ import NewsletterSection from "@/components/home-layout/Newsletter";
 import FAQ from "@/components/home-layout/Faq";
 import BlogSection from "@/components/home-layout/BlogSection";
 import CustomerReviews from "@/components/home-layout/Reviews/CustomerReviews";
+import { User, Star, Gift, Home as HomeIcon, Box } from "lucide-react";
 
 export default function Home() {
   return (
@@ -16,7 +17,20 @@ export default function Home() {
       <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
         <Navbar />
         <Hero />
-        <ProductGrid />
+        <ProductGrid
+          title="Grumpy Grampa’s Treasure Trove"
+          subtitle="Curiously cranky finds, handpicked with old-school charm."
+          tabs={[
+            { name: "Grandparents", icon: "User" },
+            { name: "Theme", icon: "Star" },
+            { name: "Accessories", icon: "Gift" },
+            { name: "Home & Living", icon: "Home" },
+            { name: "Featured", icon: "Box" },
+          ]}
+          showFilter={true}
+          className="py-12"
+          viewAllUrl="/Shop"
+        />
         <AboutSection />
         <CustomerReviews />
         <BlogSection />
