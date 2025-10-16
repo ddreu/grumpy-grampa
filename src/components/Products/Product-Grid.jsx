@@ -151,15 +151,17 @@ export default function ProductGrid({
 
             return (
               <Link key={id} href={`/Product/${handle}`}>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
-                  <div className="relative">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                  <div className="relative overflow-hidden">
+                    {/* Discount badge */}
                     {discount > 0 && (
-                      <div className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full">
+                      <div className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
                         {discount}% OFF
                       </div>
                     )}
-                    {/* Vertical buttons container */}
-                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+
+                    {/* Vertical buttons container - show on hover */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
                       <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
                         <Compare size={20} strokeWidth={1} />
                       </button>
@@ -167,13 +169,17 @@ export default function ProductGrid({
                         <Heart size={20} strokeWidth={1} />
                       </button>
                     </div>
-                    <Image
-                      src={img || "/placeholder.png"}
-                      alt={productTitle}
-                      width={400}
-                      height={400}
-                      className="w-full h-[350px] object-cover"
-                    />
+
+                    {/* Image with zoom on hover */}
+                    <div className="w-full h-[350px] overflow-hidden">
+                      <Image
+                        src={img || "/placeholder.png"}
+                        alt={productTitle}
+                        width={400}
+                        height={400}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
                   </div>
 
                   <div className="p-4">
