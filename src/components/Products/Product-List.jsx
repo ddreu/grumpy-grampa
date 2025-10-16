@@ -5,6 +5,8 @@ import { ArrowDown, Star } from "lucide-react";
 import CartIcon from "../icons/Cart";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Compare from "../icons/Compare";
+import Heart from "../icons/Heart";
 
 export function Product() {
   const searchParams = useSearchParams();
@@ -91,12 +93,24 @@ export function Product() {
                 className="group"
               >
                 <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  {/* Discount badge */}
                   {discount > 0 && (
-                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
                       {discount}% OFF
                     </span>
                   )}
 
+                  {/* Vertical hover buttons */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                    <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                      <Compare size={20} strokeWidth={1} />
+                    </button>
+                    <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                      <Heart size={20} strokeWidth={1} />
+                    </button>
+                  </div>
+
+                  {/* Product Image */}
                   <div className="aspect-[3/4] w-full overflow-hidden">
                     {image ? (
                       <img
@@ -109,6 +123,7 @@ export function Product() {
                     )}
                   </div>
 
+                  {/* Product Info */}
                   <div className="p-5">
                     <div className="flex items-center text-sm text-yellow-500 mb-1">
                       <Star size={14} fill="currentColor" />
