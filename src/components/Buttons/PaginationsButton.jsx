@@ -15,7 +15,7 @@ export default function PaginationButtons({
       {/* Previous Button */}
       <button
         onClick={onPrevious}
-        className="px-6 py-2 border border-neutral-950 text-neutral-950 rounded-full font-medium hover:bg-neutral-100 transition"
+        className="px-6 py-2 text-neutral-950 rounded-full font-medium bg-neutral-200 hover:bg-neutral-300 transition"
       >
         Previous
       </button>

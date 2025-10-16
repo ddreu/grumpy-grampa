@@ -6,8 +6,8 @@ export default function HeroText() {
     <div className="text-center py-8 bg-neutral-50">
       <div className="max-w-2xl mx-auto px-2">
         {/* Free shipping badge */}
-        <div className="inline-block border border-neutral-200 rounded-full px-4 py-1 mb-4">
-          <span className="text-sm text-amber-600 font-medium">
+        <div className="inline-block border border-neutral-400 rounded-full px-4 py-1 mb-4">
+          <span className="text-sm font-medium text-gradient-gold">
             Free Shipping on Orders over $75+
           </span>
         </div>

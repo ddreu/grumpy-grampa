@@ -127,12 +127,26 @@ export default function HeroImage() {
                   />
 
                   {/* Price Overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition">
-                    <div className="mb-6 text-center">
-                      <p className="text-yellow-400 font-semibold">
+
+                  <div
+                    className={`absolute inset-0 flex flex-col items-center justify-end transition
+    ${
+      isActive
+        ? "opacity-100"
+        : "bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100"
+    }`}
+                  >
+                    {/* <div className="absolute inset-0 flex flex-col items-center justify-end transition"> */}
+                    <div
+                      className={`mb-3 w-68 text-center bg-[#0A0A0A]/50
+  ${isActive ? "block" : "hidden group-hover:block"}
+  rounded-t-[4rem] rounded-b-[11rem] pt-4 pb-7 transition-all duration-300`}
+                      style={{ backdropFilter: "blur(1.5px)" }}
+                    >
+                      <p className="text-yellow-400 mt-2 font-thin text-lg">
                         {currency} {price}
                       </p>
-                      <button className="bg-black text-white px-5 py-2 rounded-md mt-1 text-sm">
+                      <button className="text-white px-6 rounded-md mt-2 font-semibold tracking-wide text-xl">
                         Shop Now
                       </button>
                     </div>
