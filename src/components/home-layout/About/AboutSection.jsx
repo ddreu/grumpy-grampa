@@ -35,7 +35,7 @@ export default function AboutSection() {
                   alt="Grumpy Grandpa"
                   width={800}
                   height={800}
-                  className="object-cover rounded-full -translate-y-6"
+                  className="object-cover rounded-full -translate-y-7"
                 />
               </div>
             </div>

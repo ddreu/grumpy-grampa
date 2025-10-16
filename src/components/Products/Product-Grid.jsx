@@ -3,19 +3,12 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { fetchProducts } from "@/lib/shopify";
-import {
-  ArrowRight,
-  Filter,
-  Heart,
-  Star,
-  User,
-  Gift,
-  Home,
-  Box,
-} from "lucide-react";
+import { ArrowRight, Filter, Star, User, Gift, Home, Box } from "lucide-react";
 import PaginationButtons from "../Buttons/PaginationsButton";
 import CartIcon from "@/components/icons/Cart";
 import Link from "next/link";
+import Compare from "../icons/Compare";
+import Heart from "../icons/Heart";
 
 export default function ProductGrid({
   title = "Our Products",
@@ -165,9 +158,15 @@ export default function ProductGrid({
                         {discount}% OFF
                       </div>
                     )}
-                    <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow hover:bg-gray-100">
-                      <Heart size={20} strokeWidth={1} />
-                    </button>
+                    {/* Vertical buttons container */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                      <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                        <Compare size={20} strokeWidth={1} />
+                      </button>
+                      <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                        <Heart size={20} strokeWidth={1} />
+                      </button>
+                    </div>
                     <Image
                       src={img || "/placeholder.png"}
                       alt={productTitle}
