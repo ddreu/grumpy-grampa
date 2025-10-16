@@ -1,13 +1,13 @@
-import Footer from "@/components/layout/Footer/Footer";
-import { Navbar } from "../components/layout/Navbar";
-import { Product } from "../components/layout/Products/Product-List";
-import Hero from "@/components/layout/Hero";
-import ProductGrid from "@/components/layout/Products/Product-Grid";
-import AboutSection from "@/components/layout/About/AboutSection";
-import NewsletterSection from "@/components/layout/Newsletter";
-import FAQ from "@/components/layout/Faq";
-import BlogSection from "@/components/layout/BlogSection";
-import CustomerReviews from "@/components/layout/Reviews/CustomerReviews";
+import Footer from "@/components/Footer/Footer";
+import { Navbar } from "../components/Navbar";
+import { Product } from "../components/Products/Product-List";
+import Hero from "@/components/home-layout/Hero";
+import ProductGrid from "@/components/Products/Product-Grid";
+import AboutSection from "@/components/home-layout/About/AboutSection";
+import NewsletterSection from "@/components/home-layout/Newsletter";
+import FAQ from "@/components/home-layout/Faq";
+import BlogSection from "@/components/home-layout/BlogSection";
+import CustomerReviews from "@/components/home-layout/Reviews/CustomerReviews";
 
 export default function Home() {
   return (

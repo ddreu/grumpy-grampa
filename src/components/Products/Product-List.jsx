@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchProducts } from "../../../lib/shopify";
+import { fetchProducts } from "../../lib/shopify";
 
 export function Product() {
   const [products, setProducts] = useState([]);

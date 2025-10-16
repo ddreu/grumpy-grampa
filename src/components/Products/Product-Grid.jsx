@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import PaginationButtons from "../Buttons/PaginationsButton";
+import CartIcon from "@/components/icons/Cart";
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
@@ -60,10 +61,10 @@ export default function ProductGrid() {
       <div className="max-w-7xl mx-auto">
         {/* ===== Header ===== */}
         <div className="mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col sm:flex-row mb-8 sm:items-end sm:justify-between">
             {/* Left side — title and subtitle */}
             <div className="text-left">
-              <h1 className="text-4xl font-extrabold tracking-tight font-sans">
+              <h1 className="text-4xl mb-6 font-extrabold tracking-tight font-sans">
                 Grumpy Grampa’s Treasure Trove
               </h1>
               <p className="text-gray-600 mt-2">
@@ -73,8 +74,8 @@ export default function ProductGrid() {
 
             {/* Right side — View All */}
             <div className="mt-4 sm:mt-0">
-              <button className="flex items-center gap-2 px-5 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
-                View All <ArrowRight size={16} />
+              <button className="flex items-center gap-2 px-6 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
+                View All <ArrowRight size={20} />
               </button>
             </div>
           </div>
@@ -133,8 +134,8 @@ export default function ProductGrid() {
                   <div className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full">
                     {discount}
                   </div>
-                  <button className="absolute top-3 right-3 bg-white p-1 rounded-full shadow hover:bg-gray-100">
-                    <Heart size={16} />
+                  <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                    <Heart size={20} strokeWidth={1} />
                   </button>
                   <Image
                     src={img || "/placeholder.png"}
@@ -149,7 +150,13 @@ export default function ProductGrid() {
                 <div className="p-4">
                   {/* Stars + Stock */}
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-                    <span>⭐ 5.0 (260 Reviews)</span>
+                    <span className="flex items-center gap-1">
+                      <Star
+                        size={16}
+                        className="fill-yellow-500 text-yellow-500"
+                      />
+                      5.0 (260 Reviews)
+                    </span>
                     <span>1.2K Stocks</span>
                   </div>
 
@@ -165,7 +172,7 @@ export default function ProductGrid() {
 
                     {/* Right side: Cart Button vertically centered */}
                     <button className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center">
-                      <ShoppingCart size={26} />
+                      <CartIcon size={26} />
                     </button>
                   </div>
                 </div>

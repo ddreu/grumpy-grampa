@@ -15,10 +15,10 @@ export default function AboutSection() {
     <section className="w-full py-20 text-black overflow-hidden">
       {/* ===== Title Section ===== */}
       <div className="text-center mb-16 px-4">
-        <h1 className="text-3xl md:text-4xl font-extrabold">
+        <h1 className="text-3xl md:text-5xl mb-8 font-extrabold">
           Grumpy by Nature. Legendary by Choice.
         </h1>
-        <p className="text-sm mt-2 text-gray-600">
+        <p className="text-lg mt-4 text-gray-600">
           Turning old-school grit into goods worth bragging about.
         </p>
       </div>
@@ -66,16 +66,21 @@ export default function AboutSection() {
               <div key={item.id} className="border-b border-neutral-950 py-4">
                 <button
                   onClick={() => toggle(item.id)}
-                  className="flex justify-between items-center w-full text-left font-semibold text-lg"
+                  className="flex justify-between items-center w-full text-left font-semibold text-2xl"
                 >
                   {item.title}
                   {open === item.id ? <Minus size={20} /> : <Plus size={20} />}
                 </button>
-                {open === item.id && (
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">
+
+                <div
+                  className={`overflow-hidden transition-all duration-500 ${
+                    open === item.id ? "max-h-96 mt-3" : "max-h-0"
+                  }`}
+                >
+                  <p className="text-gray-600 text-lg leading-relaxed">
                     {item.content}
                   </p>
-                )}
+                </div>
               </div>
             ))}
           </div>

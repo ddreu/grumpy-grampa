@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import ViewAllButton from "./Buttons/ViewAllButton";
+import ViewAllButton from "../Buttons/ViewAllButton";
+import CalendarIcon from "../icons/Calendar";
 
 const blogs = [
   {
     id: 1,
-    image: "/images/blog1.jpg",
+    image: "/blog/blog-1.png",
     date: "September 12, 2025",
     title: "Back in My Day… and Other Things Gramps Says",
     excerpt:
@@ -15,7 +16,7 @@ const blogs = [
   },
   {
     id: 2,
-    image: "/images/blog2.jpg",
+    image: "/blog/blog-2.png",
     date: "September 11, 2025",
     title: "10 Gifts That’ll Make Grampa Smile (and Maybe Tear Up)",
     excerpt:
@@ -23,7 +24,7 @@ const blogs = [
   },
   {
     id: 3,
-    image: "/images/blog3.jpg",
+    image: "/blog/blog-3.png",
     date: "September 10, 2025",
     title: "How to Keep Grandkids Off Their Phones (for 5 Minutes)",
     excerpt:
@@ -34,9 +35,9 @@ const blogs = [
 export default function BlogSection() {
   return (
     <section className="text-neutral-950 py-18">
-      <div className="max-w-6xl mx-auto px-6 text-center">
-        <h2 className="text-3xl font-bold mb-2">Our Blogs</h2>
-        <p className="text-sm text-neutral-600 mb-12">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+        <h2 className="text-4xl font-bold mb-2">Our Blogs</h2>
+        <p className="text-md text-neutral-600 mb-12">
           Stories, tips, and a few grumbles about life, love, and the art of
           spoiling grandkids.
         </p>
@@ -45,7 +46,7 @@ export default function BlogSection() {
           {blogs.map((blog) => (
             <div
               key={blog.id}
-              className="bg-white rounded-4xl shadow-sm overflow-hidden text-left transition hover:shadow-md"
+              className="bg-white rounded-4xl shadow-sm overflow-hidden text-left transition hover:shadow-md flex flex-col"
             >
               <div className="h-52 w-full relative">
                 <Image
@@ -55,16 +56,25 @@ export default function BlogSection() {
                   className="object-cover"
                 />
               </div>
-              <div className="p-6">
-                <p className="text-xs text-neutral-500 mb-2 flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 bg-yellow-400 rounded-sm"></span>
-                  {blog.date}
-                </p>
-                <h3 className="font-semibold text-base mb-2">{blog.title}</h3>
-                <p className="text-sm text-neutral-600 mb-4">{blog.excerpt}</p>
-                <button className="flex items-center gap-2 text-sm font-medium text-neutral-950 hover:translate-x-1 transition">
-                  Learn More <ArrowRight size={16} />
-                </button>
+
+              {/* Content + Footer */}
+              <div className="p-6 flex flex-col flex-1">
+                <div className="mb-4">
+                  <p className="text-sm text-neutral-500 mb-2 flex items-center gap-1.5">
+                    <CalendarIcon size={16} className="mr-1.5" />
+                    {blog.date}
+                  </p>
+
+                  <h3 className="font-semibold text-base mb-2">{blog.title}</h3>
+                  <p className="text-md text-neutral-600">{blog.excerpt}</p>
+                </div>
+
+                {/* Footer Button */}
+                <div className="mt-auto">
+                  <button className="flex items-center gap-2 text-md font-medium text-neutral-950 hover:translate-x-1 transition">
+                    Learn More <ArrowRight size={20} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

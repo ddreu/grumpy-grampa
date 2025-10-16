@@ -26,28 +26,43 @@ export default function Footer() {
                 aria-label="Facebook"
                 className="hover:opacity-80 transition"
               >
-                <Image src="/fb.svg" alt="Facebook" width={20} height={20} />
+                <Image
+                  src="/socials/fb.svg"
+                  alt="Facebook"
+                  width={20}
+                  height={20}
+                />
               </a>
               <a
                 href="#"
                 aria-label="Instagram"
                 className="hover:opacity-80 transition"
               >
-                <Image src="/ig.svg" alt="Instagram" width={20} height={20} />
+                <Image
+                  src="/socials/ig.svg"
+                  alt="Instagram"
+                  width={20}
+                  height={20}
+                />
               </a>
               <a
                 href="#"
                 aria-label="X"
                 className="hover:opacity-80 transition"
               >
-                <Image src="/x.svg" alt="X" width={20} height={20} />
+                <Image src="/socials/x.svg" alt="X" width={20} height={20} />
               </a>
               <a
                 href="#"
                 aria-label="LinkedIn"
                 className="hover:opacity-80 transition"
               >
-                <Image src="/in.svg" alt="LinkedIn" width={20} height={20} />
+                <Image
+                  src="/socials/in.svg"
+                  alt="LinkedIn"
+                  width={20}
+                  height={20}
+                />
               </a>
             </div>
           </div>
