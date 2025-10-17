@@ -1,16 +1,21 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 export default function PaginationButtons({
   progress = 0,
   visibleRatio = 25,
   onPrevious,
   onNext,
-  onDragChange, // new callback: (newProgress) => {}
+  onDragChange,
 }) {
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [localProgress, setLocalProgress] = useState(progress);
+
+  // keep localProgress in sync when parent changes progress
+  useEffect(() => {
+    if (!isDragging) setLocalProgress(progress);
+  }, [progress, isDragging]);
 
   const handlePointerDown = (e) => {
     setIsDragging(true);
@@ -22,18 +27,20 @@ export default function PaginationButtons({
   };
 
   const handlePointerUp = () => {
-    setIsDragging(false);
-    if (onDragChange) onDragChange(localProgress);
+    if (isDragging) {
+      setIsDragging(false);
+      if (onDragChange) onDragChange(localProgress);
+    }
   };
 
   const updateProgress = (e) => {
     const rect = trackRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const percent = Math.min(Math.max((x / rect.width) * 100, 0), 100);
-    setLocalProgress(percent);
+    let percent = x / rect.width;
+    percent = Math.min(Math.max(percent, 0), 1); // clamp 0 → 1
+    setLocalProgress(percent * 100);
   };
 
-  // use the dragging value if active
   const displayedProgress = isDragging ? localProgress : progress;
 
   return (
