@@ -59,7 +59,7 @@ export const GET_PRODUCTS = gql`
           id
           title
           handle
-          images(first: 5) {
+          images(first: 20) {
             edges {
               node {
                 url
@@ -67,7 +67,7 @@ export const GET_PRODUCTS = gql`
               }
             }
           }
-          variants(first: 1) {
+          variants(first: 10) {
             edges {
               node {
                 id

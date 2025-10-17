@@ -23,6 +23,19 @@ export default function ProductGrid({
   const [startIndex, setStartIndex] = useState(0);
   const itemsPerPage = 4;
   const ICONS_MAP = { ArrowRight, Filter, Heart, Star, User, Gift, Home, Box };
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const currentPage = startIndex / itemsPerPage;
+  const totalScrollable = products.length - itemsPerPage;
+  const progress =
+    totalScrollable > 0 ? (startIndex / totalScrollable) * 100 : 0;
+
+  const handleDragChange = (newProgress) => {
+    const totalScrollable = products.length - itemsPerPage;
+    const newStart = Math.round((newProgress / 100) * totalScrollable);
+    setStartIndex(newStart);
+  };
+
+  const visibleRatio = (itemsPerPage / products.length) * 100;
 
   useEffect(() => {
     async function loadProducts() {
@@ -46,22 +59,12 @@ export default function ProductGrid({
     );
   }
 
-  const displayedProducts = products.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
   const handlePrevious = () =>
     setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
   const handleNext = () =>
     setStartIndex((prev) =>
       Math.min(prev + itemsPerPage, products.length - itemsPerPage)
     );
-
-  const progress = Math.min(
-    100,
-    ((startIndex + itemsPerPage) / products.length) * 100
-  );
 
   return (
     <section className={`text-[#111] ${className}`}>
@@ -132,98 +135,116 @@ export default function ProductGrid({
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayedProducts.map((product) => {
-            const img =
-              product.images?.[0]?.url || product.images?.edges?.[0]?.node?.url;
-            const variant = product.variants?.[0];
-            const price = parseFloat(variant?.price?.amount || 0);
-            const compareAtPrice = parseFloat(
-              variant?.compareAtPrice?.amount || 0
-            );
-            const productTitle = product.title || "Untitled";
-            const id = product.id;
-            const handle = product.handle;
-            const discount =
-              compareAtPrice > price
-                ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
-                : 0;
+        {/* Product Grid Wrapper */}
+        <div className="overflow-hidden relative">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{
+              transform: `translateX(-${(startIndex / itemsPerPage) * 100}%)`,
+            }}
+          >
+            {products.map((product) => {
+              const img =
+                product.images?.[0]?.url ||
+                product.images?.edges?.[0]?.node?.url;
+              const variant = product.variants?.[0];
+              const price = parseFloat(variant?.price?.amount || 0);
+              const compareAtPrice = parseFloat(
+                variant?.compareAtPrice?.amount || 0
+              );
+              const productTitle = product.title || "Untitled";
+              const id = product.id;
+              const handle = product.handle;
+              const discount =
+                compareAtPrice > price
+                  ? Math.round(
+                      ((compareAtPrice - price) / compareAtPrice) * 100
+                    )
+                  : 0;
 
-            return (
-              <Link key={id} href={`/Product/${handle}`}>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group">
-                  <div className="relative overflow-hidden">
-                    {/* Discount badge */}
-                    {discount > 0 && (
-                      <div className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
-                        {discount}% OFF
-                      </div>
-                    )}
+              return (
+                <div
+                  key={id}
+                  className="w-full sm:w-1/2 lg:w-1/4 flex-shrink-0 px-3"
+                >
+                  <Link href={`/Product/${handle}`}>
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                      <div className="relative overflow-hidden">
+                        {/* Discount badge */}
+                        {discount > 0 && (
+                          <div className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
+                            {discount}% OFF
+                          </div>
+                        )}
 
-                    {/* Vertical buttons container - show on hover */}
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
-                      <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
-                        <Compare size={20} strokeWidth={1} />
-                      </button>
-                      <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
-                        <Heart size={20} strokeWidth={1} />
-                      </button>
-                    </div>
+                        {/* Hover buttons */}
+                        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                          <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                            <Compare size={20} strokeWidth={1} />
+                          </button>
+                          <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
+                            <Heart size={20} strokeWidth={1} />
+                          </button>
+                        </div>
 
-                    {/* Image with zoom on hover */}
-                    <div className="w-full h-[350px] overflow-hidden">
-                      <Image
-                        src={img || "/placeholder.png"}
-                        alt={productTitle}
-                        width={400}
-                        height={400}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-                      <span className="flex items-center gap-1">
-                        <Star
-                          size={16}
-                          className="fill-yellow-500 text-yellow-500"
-                        />
-                        5.0 (260 Reviews)
-                      </span>
-                      <span>1.2K Stocks</span>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          {productTitle}
-                        </h3>
-                        <p className="text-l font-bold mt-1">
-                          ${price.toFixed(2)}{" "}
-                          {discount > 0 && (
-                            <span className="text-gray-400 line-through ml-2">
-                              ${compareAtPrice.toFixed(2)}
-                            </span>
-                          )}
-                        </p>
+                        {/* Product image */}
+                        <div className="w-full h-[350px] overflow-hidden">
+                          <Image
+                            src={img || "/placeholder.png"}
+                            alt={productTitle}
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
                       </div>
 
-                      <button className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center">
-                        <CartIcon size={26} />
-                      </button>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+                          <span className="flex items-center gap-1">
+                            <Star
+                              size={16}
+                              className="fill-yellow-500 text-yellow-500"
+                            />
+                            5.0 (260 Reviews)
+                          </span>
+                          <span>1.2K Stocks</span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-semibold text-lg">
+                              {productTitle}
+                            </h3>
+                            <p className="text-l font-bold mt-1">
+                              ${price.toFixed(2)}{" "}
+                              {discount > 0 && (
+                                <span className="text-gray-400 line-through ml-2">
+                                  ${compareAtPrice.toFixed(2)}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+
+                          <button className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center">
+                            <CartIcon size={26} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
-              </Link>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <PaginationButtons
           progress={progress}
+          visibleRatio={(itemsPerPage / products.length) * 100}
           onPrevious={handlePrevious}
           onNext={handleNext}
+          onDragChange={handleDragChange}
         />
       </div>
     </section>

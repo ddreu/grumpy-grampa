@@ -6,6 +6,7 @@ import { Navigation } from "swiper/modules";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { fetchProducts } from "@/lib/shopify";
+import { motion } from "framer-motion";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -14,7 +15,7 @@ export default function HeroImage() {
   const [products, setProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // ✅ Refs for manual navigation
+  // Refs for manual navigation
   const prevRef = useRef(null);
   const nextRef = useRef(null);
 
@@ -40,22 +41,34 @@ export default function HeroImage() {
   };
 
   const getTransform = (offset) => {
-    const clamped = Math.max(-2, Math.min(2, offset));
     let rotate = 0;
-    let translateY = Math.abs(clamped) * 40;
+    let translateY = 0;
 
-    if (clamped < 0) rotate = clamped === -2 ? -11 : -5;
-    if (clamped > 0) rotate = clamped === 2 ? 11 : 5;
+    // Visible slides
+    if (Math.abs(offset) <= 2) {
+      translateY = Math.abs(offset) * 40;
+      if (offset < 0) rotate = offset === -2 ? -11 : -5;
+      if (offset > 0) rotate = offset === 2 ? 11 : 5;
+      if (Math.abs(offset) === 1) translateY -= 25;
+      if (Math.abs(offset) === 2) translateY -= 15;
+    }
 
-    if (Math.abs(clamped) === 1) translateY -= 25;
-    if (clamped === -2 || clamped === 2) translateY -= 15;
+    // Entering / exiting slides (offscreen)
+    if (offset === -3) {
+      translateY = 190;
+      rotate = -20;
+    }
+    if (offset === 3) {
+      translateY = 190;
+      rotate = 20;
+    }
 
     return `rotate(${rotate}deg) translateY(${translateY}px)`;
   };
 
   return (
     <div className="bg-neutral-50 pt-10 px-0 pb-32 relative w-full overflow-visible">
-      {/* ✅ Custom buttons without Swiper classes */}
+      {/*  Custom buttons without Swiper classes */}
       <div
         className="absolute left-60 top-1/2 z-10 -translate-y-1/2"
         style={{ transform: "rotate(-17deg)" }}
@@ -82,7 +95,7 @@ export default function HeroImage() {
         </button>
       </div>
 
-      {/* ✅ Swiper with manual nav refs */}
+      {/*  Swiper with manual nav refs */}
       <Swiper
         modules={[Navigation]}
         navigation={{
@@ -101,34 +114,46 @@ export default function HeroImage() {
         className="hero-swiper"
       >
         {products.map((product, index) => {
+          const offset = getOffset(index, activeIndex, products.length);
+          const transform = getTransform(offset);
+          const isActive = offset === 0;
+          const isVisible = Math.abs(offset) <= 2;
+          const isBeforeFirst = offset === -3;
+          const isAfterLast = offset === 3;
           const image = product.images?.[0]?.url || "/placeholder.png";
           const price = product.variants?.[0]?.price?.amount;
           const currency = product.variants?.[0]?.price?.currencyCode;
-          const offset = getOffset(index, activeIndex, products.length);
-          const transform = getTransform(offset);
-          const isActive = index === activeIndex;
 
           return (
             <SwiperSlide key={product.id}>
-              <div
-                className={`p-1 rounded-[6.5rem] transition-all duration-500 ${
+              <motion.div
+                className={`p-1 rounded-[6.5rem] ${
                   isActive
                     ? "border-3 border-dashed border-neutral-950"
                     : "border-transparent"
                 }`}
                 style={{
-                  transform,
+                  zIndex: 5 - Math.abs(offset), // keep active on top
                   transformOrigin: "center bottom",
-                  transition: "transform 0.5s ease, border-color 0.3s ease",
+                }}
+                animate={{
+                  transform: getTransform(offset),
+                  scale: offset === 0 ? 1 : 0.9, // slightly smaller for side slides
+                  opacity: Math.abs(offset) <= 2 ? 1 : 0, // fully visible for 5 slides, hidden otherwise
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 30,
                 }}
               >
-                <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[6rem] transition-all duration-300">
+                <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[6rem]">
                   <Image
                     src={image}
                     alt={product.title}
                     width={400}
                     height={500}
-                    className="object-cover w-full h-[450px] rounded-[5rem]"
+                    className="object-cover w-full rounded-[5rem]"
                   />
 
                   <div
@@ -139,9 +164,9 @@ export default function HeroImage() {
                     }`}
                   >
                     <div
-                      className={`mb-3 w-68 text-center bg-[#0A0A0A]/50 ${
+                      className={`mb-3 w-68 md:w-68 xl:90 text-center bg-[#0A0A0A]/50 ${
                         isActive ? "block" : "hidden group-hover:block"
-                      } rounded-t-[4rem] rounded-b-[11rem] pt-4 pb-7 transition-all duration-300`}
+                      } rounded-t-[4rem] rounded-b-[11rem] pt-4 pb-7`}
                       style={{ backdropFilter: "blur(1.5px)" }}
                     >
                       <p className="text-yellow-400 mt-2 font-thin text-lg">
@@ -153,7 +178,14 @@ export default function HeroImage() {
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {isBeforeFirst && (
+                  <div className="absolute top-0 left-0 w-4 h-4 bg-red-500 rounded-full" />
+                )}
+                {isAfterLast && (
+                  <div className="absolute top-0 right-0 w-4 h-4 bg-blue-500 rounded-full" />
+                )}
+              </motion.div>
             </SwiperSlide>
           );
         })}
