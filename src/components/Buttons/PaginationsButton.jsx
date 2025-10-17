@@ -1,17 +1,48 @@
-// src/components/PaginationButtons.jsx
 "use client";
+import { useRef, useState } from "react";
 
 export default function PaginationButtons({
   progress = 0,
+  visibleRatio = 25,
   onPrevious,
   onNext,
+  onDragChange, // new callback: (newProgress) => {}
 }) {
-  /**
-   * progress: number between 0 and 100 representing progress
-   */
+  const trackRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [localProgress, setLocalProgress] = useState(progress);
+
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    updateProgress(e);
+  };
+
+  const handlePointerMove = (e) => {
+    if (isDragging) updateProgress(e);
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+    if (onDragChange) onDragChange(localProgress);
+  };
+
+  const updateProgress = (e) => {
+    const rect = trackRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percent = Math.min(Math.max((x / rect.width) * 100, 0), 100);
+    setLocalProgress(percent);
+  };
+
+  // use the dragging value if active
+  const displayedProgress = isDragging ? localProgress : progress;
 
   return (
-    <div className="flex justify-center items-center gap-6 mt-10 w-full max-w-2xl mx-auto">
+    <div
+      className="flex justify-center items-center gap-6 mt-10 w-full max-w-2xl mx-auto select-none"
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+    >
       {/* Previous Button */}
       <button
         onClick={onPrevious}
@@ -20,11 +51,19 @@ export default function PaginationButtons({
         Previous
       </button>
 
-      {/* Progress Bar */}
-      <div className="relative flex-1 h-2 bg-neutral-300 rounded-full overflow-hidden">
+      {/* Progress Track */}
+      <div
+        ref={trackRef}
+        className="relative flex-1 h-2 bg-neutral-300 rounded-full overflow-hidden cursor-pointer"
+        onPointerDown={handlePointerDown}
+      >
+        {/* Moving Indicator */}
         <div
-          className="h-full bg-neutral-950 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
+          className="absolute top-0 h-full bg-neutral-950 rounded-full transition-all duration-150"
+          style={{
+            width: `${visibleRatio}%`,
+            left: `calc(${displayedProgress}% * (100 - ${visibleRatio}) / 100)`,
+          }}
         ></div>
       </div>
 

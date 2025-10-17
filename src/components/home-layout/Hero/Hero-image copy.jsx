@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
-import Image from "next/image";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { fetchProducts } from "@/lib/shopify";
 
 import "swiper/css";
@@ -13,6 +13,10 @@ import "swiper/css/navigation";
 export default function HeroImage() {
   const [products, setProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Refs for manual navigation
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
 
   useEffect(() => {
     async function loadProducts() {
@@ -28,7 +32,6 @@ export default function HeroImage() {
     );
   }
 
-  // handle looping offset properly
   const getOffset = (index, activeIndex, total) => {
     let offset = index - activeIndex;
     if (offset > total / 2) offset -= total;
@@ -36,56 +39,71 @@ export default function HeroImage() {
     return offset;
   };
 
-  // arch transform logic with lifted 2nd and 4th
   const getTransform = (offset) => {
-    const clamped = Math.max(-2, Math.min(2, offset)); // only first 2 per side tilt
     let rotate = 0;
-    let translateY = Math.abs(clamped) * 40; // base downward movement
-    // let scale = clamped === 0 ? 1.05 : 1;
+    let translateY = 0;
 
-    if (clamped < 0) rotate = clamped === -2 ? -11 : -5; // tilt left
-    if (clamped > 0) rotate = clamped === 2 ? 11 : 5; // tilt right
+    // Visible slides
+    if (Math.abs(offset) <= 2) {
+      translateY = Math.abs(offset) * 40;
+      if (offset < 0) rotate = offset === -2 ? -11 : -5;
+      if (offset > 0) rotate = offset === 2 ? 11 : 5;
+      if (Math.abs(offset) === 1) translateY -= 25;
+      if (Math.abs(offset) === 2) translateY -= 15;
+    }
 
-    // lift 2nd and 4th slightly upward to form a smooth arch
-    if (Math.abs(clamped) === 1) translateY -= 25;
-    // lift 1st and 5th
-    if (clamped === -2 || clamped === 2) translateY -= 15;
+    // Entering / exiting slides (offscreen)
+    if (offset === -3) {
+      translateY = 130;
+      rotate = -20;
+    }
+    if (offset === 3) {
+      translateY = 130;
+      rotate = 20;
+    }
 
-    // Lift all non-center slides slightly to form arch
-    // if (clamped !== 0) {
-    //   translateY -= 35; // lifts up
-    // }
-
-    // return `rotate(${rotate}deg) translateY(${translateY}px) scale(${scale})`;
     return `rotate(${rotate}deg) translateY(${translateY}px)`;
   };
 
   return (
     <div className="bg-neutral-50 pt-10 px-0 pb-32 relative w-full overflow-visible">
-      {/* Navigation buttons */}
+      {/*  Custom buttons without Swiper classes */}
       <div
-        className="absolute left-44 top-1/2 z-10 -translate-y-1/2"
+        className="absolute left-60 top-1/2 z-10 -translate-y-1/2"
         style={{ transform: "rotate(-17deg)" }}
       >
-        <button className="swiper-button-prev bg-black text-white border border-white rounded-full p-3 shadow-lg hover:scale-110 transition">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      </div>
-      <div
-        className="absolute right-44 top-1/2 z-10 -translate-y-1/2"
-        style={{ transform: "rotate(17deg)" }}
-      >
-        <button className="swiper-button-next bg-black text-white border border-white rounded-full p-3 shadow-lg hover:scale-110 transition">
-          <ArrowRight className="w-5 h-5" />
+        <button
+          ref={prevRef}
+          className="bg-black text-white border-2 border-white rounded-full p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
+          aria-label="Previous slide"
+        >
+          <ArrowLeft size={35} strokeWidth={2} />
         </button>
       </div>
 
-      {/* Swiper Carousel */}
+      <div
+        className="absolute right-60 top-1/2 z-10 -translate-y-1/2"
+        style={{ transform: "rotate(17deg)" }}
+      >
+        <button
+          ref={nextRef}
+          className="bg-black text-white border-2 border-white rounded-full p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
+          aria-label="Next slide"
+        >
+          <ArrowRight size={35} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/*  Swiper with manual nav refs */}
       <Swiper
         modules={[Navigation]}
         navigation={{
-          nextEl: ".swiper-button-next",
-          prevEl: ".swiper-button-prev",
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
         }}
         spaceBetween={8}
         slidesPerView={5}
@@ -95,13 +113,15 @@ export default function HeroImage() {
         className="hero-swiper"
       >
         {products.map((product, index) => {
+          const offset = getOffset(index, activeIndex, products.length);
+          const transform = getTransform(offset);
+          const isActive = offset === 0;
+          const isVisible = Math.abs(offset) <= 2;
+          const isBeforeFirst = offset === -3;
+          const isAfterLast = offset === 3;
           const image = product.images?.[0]?.url || "/placeholder.png";
           const price = product.variants?.[0]?.price?.amount;
           const currency = product.variants?.[0]?.price?.currencyCode;
-
-          const offset = getOffset(index, activeIndex, products.length);
-          const transform = getTransform(offset);
-          const isActive = index === activeIndex;
 
           return (
             <SwiperSlide key={product.id}>
@@ -113,8 +133,11 @@ export default function HeroImage() {
                 }`}
                 style={{
                   transform,
+                  // opacity: isVisible ? 1 : 0.3,
+                  zIndex: 5 - Math.abs(offset), // keep active on top
                   transformOrigin: "center bottom",
-                  transition: "transform 0.5s ease, border-color 0.3s ease",
+                  transition:
+                    "transform 0.5s ease, opacity 0.5s ease, border-color 0.3s ease",
                 }}
               >
                 <div className="relative group overflow-hidden bg-white shadow-sm hover:shadow-lg rounded-[6rem] transition-all duration-300">
@@ -123,24 +146,20 @@ export default function HeroImage() {
                     alt={product.title}
                     width={400}
                     height={500}
-                    className="object-cover w-full h-[450px] rounded-[5rem]"
+                    className="object-cover w-full rounded-[5rem]"
                   />
 
-                  {/* Price Overlay */}
-
                   <div
-                    className={`absolute inset-0 flex flex-col items-center justify-end transition
-    ${
-      isActive
-        ? "opacity-100"
-        : "bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100"
-    }`}
+                    className={`absolute inset-0 flex flex-col items-center justify-end transition ${
+                      isActive
+                        ? "opacity-100"
+                        : "bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100"
+                    }`}
                   >
-                    {/* <div className="absolute inset-0 flex flex-col items-center justify-end transition"> */}
                     <div
-                      className={`mb-3 w-68 text-center bg-[#0A0A0A]/50
-  ${isActive ? "block" : "hidden group-hover:block"}
-  rounded-t-[4rem] rounded-b-[11rem] pt-4 pb-7 transition-all duration-300`}
+                      className={`mb-3 w-68 md:w-68 xl:90 text-center bg-[#0A0A0A]/50 ${
+                        isActive ? "block" : "hidden group-hover:block"
+                      } rounded-t-[4rem] rounded-b-[11rem] pt-4 pb-7 transition-all duration-300`}
                       style={{ backdropFilter: "blur(1.5px)" }}
                     >
                       <p className="text-yellow-400 mt-2 font-thin text-lg">
@@ -152,6 +171,12 @@ export default function HeroImage() {
                     </div>
                   </div>
                 </div>
+                {isBeforeFirst && (
+                  <div className="absolute top-0 left-0 w-4 h-4 bg-red-500 rounded-full" />
+                )}
+                {isAfterLast && (
+                  <div className="absolute top-0 right-0 w-4 h-4 bg-blue-500 rounded-full" />
+                )}
               </div>
             </SwiperSlide>
           );
