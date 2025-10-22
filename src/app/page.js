@@ -20,13 +20,6 @@ export default function Home() {
         <ProductGrid
           title="Grumpy Grampa’s Treasure Trove"
           subtitle="Curiously cranky finds, handpicked with old-school charm."
-          tabs={[
-            { name: "Grandparents", icon: "User" },
-            { name: "Theme", icon: "Star" },
-            { name: "Accessories", icon: "Gift" },
-            { name: "Home & Living", icon: "Home" },
-            { name: "Featured", icon: "Box" },
-          ]}
           showFilter={true}
           className="py-12"
           viewAllUrl="/Shop"

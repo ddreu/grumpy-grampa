@@ -8,40 +8,34 @@ import { useSearchParams } from "next/navigation";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
 
-export function Product({ query: externalQuery = "" }) {
+export function Product() {
   const searchParams = useSearchParams();
-  const titleParam = searchParams.get("title") || "Products";
+  const title = searchParams.get("title") || "Products";
   const tabsParam = searchParams.get("tabs") || "";
-  const queryParam = searchParams.get("query")?.toLowerCase() || "";
   const tabs = tabsParam ? tabsParam.split(",") : [];
 
-  const query = externalQuery ? externalQuery.toLowerCase() : queryParam;
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
 
-  //  Normalize function to make search forgiving
-  const normalize = (str) =>
-    str
-      ?.toLowerCase()
-      .replace(/[^a-z0-9]/gi, "") // remove spaces & special chars
-      .trim() || "";
+  const query = searchParams.get("query")?.toLowerCase() || "";
 
-  const normalizedQuery = normalize(query);
+  // const filteredProducts = products.filter((product) =>
+  //   product.collections?.some(
+  //     (collection) => collection.title === activeCollection
+  //   )
+  // );
 
-  //  Filter products
   const filteredProducts = products.filter((product) => {
-    const inCollection =
-      //  skip collection filtering during search
-      !normalizedQuery && activeCollection
-        ? product.collections?.some(
-            (collection) => collection.title === activeCollection
-          )
-        : true;
+    const inCollection = activeCollection
+      ? product.collections?.some(
+          (collection) => collection.title === activeCollection
+        )
+      : true;
 
-    const matchesQuery = normalizedQuery
-      ? normalize(product.title).includes(normalizedQuery) ||
-        normalize(product.descriptionHtml || "").includes(normalizedQuery)
+    const matchesQuery = query
+      ? product.title.toLowerCase().includes(query) ||
+        product.descriptionHtml?.toLowerCase().includes(query)
       : true;
 
     return inCollection && matchesQuery;
@@ -66,46 +60,28 @@ export function Product({ query: externalQuery = "" }) {
       </div>
     );
 
-  //  Dynamic title & subtitle logic
-  const isSearch = !!normalizedQuery && normalizedQuery.length > 0;
-  const headerTitle = isSearch ? `Search results for “${query}”` : titleParam;
-  const subTitle = isSearch
-    ? `${filteredProducts.length} item${
-        filteredProducts.length !== 1 ? "s" : ""
-      } found for “${query}”`
-    : "";
-
   return (
-    <section
-      className={`max-w-7xl mx-auto ${isSearch ? "mt-4 py-6" : "mt-8 py-10"}`}
-    >
-      {/* Category/Search Header */}
+    <section className="max-w-7xl mx-auto mt-8 py-10">
+      {/* Category Header */}
       <div className="mb-12">
-        <h1 className="text-3xl mb-2 md:text-4xl font-bold text-neutral-900">
-          {headerTitle}
+        <h1 className="text-3xl mb-8 md:text-4xl font-bold text-neutral-900">
+          {title}
         </h1>
-
-        {isSearch ? (
-          <p className="text-neutral-600 text-sm md:text-base mt-1">
-            {subTitle}
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-3 mt-3">
-            {tabs.map((collection) => (
-              <button
-                key={collection}
-                onClick={() => setActiveCollection(collection)}
-                className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
-                  activeCollection === collection
-                    ? "bg-black text-white"
-                    : "border border-neutral-950 text-neutral-900 hover:bg-gray-300"
-                }`}
-              >
-                {collection}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex gap-3 mt-3">
+          {tabs.map((collection) => (
+            <button
+              key={collection}
+              onClick={() => setActiveCollection(collection)}
+              className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
+                activeCollection === collection
+                  ? "bg-black text-white"
+                  : "border border-neutral-950 text-neutral-900 hover:bg-gray-300"
+              }`}
+            >
+              {collection}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Product Grid */}
@@ -114,10 +90,12 @@ export function Product({ query: externalQuery = "" }) {
           displayedProducts.map((product) => {
             const variant = product.variants[0];
             const image = product.images[0]?.url;
+
             const currentPrice = parseFloat(variant?.price?.amount || 0);
             const compareAtPrice = parseFloat(
               variant?.compareAtPrice?.amount || 0
             );
+
             const discount =
               compareAtPrice > currentPrice
                 ? Math.round(
@@ -134,12 +112,12 @@ export function Product({ query: externalQuery = "" }) {
                 <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
                   {/* Discount badge */}
                   {discount > 0 && (
-                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-5">
+                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
                       {discount}% OFF
                     </span>
                   )}
 
-                  {/* Hover buttons */}
+                  {/* Vertical hover buttons */}
                   <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
                     <button className="bg-white p-2 rounded-full shadow hover:bg-gray-100">
                       <Compare size={20} strokeWidth={1} />
@@ -205,13 +183,12 @@ export function Product({ query: externalQuery = "" }) {
           })
         ) : (
           <div className="col-span-full text-center py-20 text-gray-500">
-            No products found for {isSearch ? `“${query}”` : "this collection"}.
+            No products found in this collection.
           </div>
         )}
       </div>
 
-      {/* Show More / Less button (only when not in search) */}
-      {!isSearch && products.length > 8 && (
+      {products.length > 8 && (
         <div className="flex justify-center mt-10">
           <button
             onClick={() => setShowAll(!showAll)}

@@ -1,14 +1,50 @@
 "use client";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
+import FilterDropdown from "../Buttons/FilterDropdown";
+import { fetchCollectionsByGroup } from "@/lib/shopify";
 
 export default function SearchBar() {
+  const searchParams = useSearchParams();
+  const titleParam = searchParams.get("title"); // read ?title= from URL
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [groupTabs, setGroupTabs] = useState([]);
+  const [groupedCollections, setGroupedCollections] = useState({});
+  const [selectedGroup, setSelectedGroup] = useState(null); // default: no selection
+
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        const groups = await fetchCollectionsByGroup();
+        setGroupedCollections(groups);
+
+        const tabsArray = Object.keys(groups).map((groupName) => ({
+          name: groupName,
+          icon: null,
+        }));
+        setGroupTabs(tabsArray);
+
+        // Only set selectedGroup if titleParam exists AND matches a group
+        if (titleParam && groups[titleParam]) {
+          setSelectedGroup(titleParam);
+        }
+        // Otherwise leave selectedGroup null
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
+    }
+    loadGroups();
+  }, [titleParam]);
+
   return (
-    <section className="relative mt-6 mb-8 max-w-7xl mx-auto bg-black text-white rounded-3xl overflow-hidden flex flex-col items-center justify-center py-20 px-6 text-center">
+    <section className="relative mt-6 mb-8 max-w-7xl mx-auto bg-black text-white rounded-3xl flex flex-col items-center justify-center py-20 px-6 text-center">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 bg-[url('/lines.svg')] bg-cover bg-center opacity-20 pointer-events-none"
         aria-hidden="true"
-      ></div>
+      />
 
       {/* Top Badge */}
       <div className="relative z-10 border border-neutral-200 rounded-full px-4 py-1 text-sm mb-4">
@@ -33,9 +69,31 @@ export default function SearchBar() {
           placeholder="Search product here..."
           className="flex-1 bg-transparent outline-none placeholder-gray-400 text-base"
         />
-        <button className="text-gray-500 hover:text-black transition">
-          <SlidersHorizontal className="w-5 h-5" />
-        </button>
+
+        {/* Button + Dropdown wrapper */}
+        <div className="relative ml-2">
+          <button
+            className="text-gray-500 hover:text-black transition"
+            onClick={() => setIsFilterOpen((prev) => !prev)}
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+          </button>
+
+          {isFilterOpen && (
+            <div className="absolute top-0 left-full ml-2 z-50">
+              <FilterDropdown
+                open={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+                groups={groupTabs}
+                groupedCollections={groupedCollections}
+                selectedGroup={
+                  titleParam && selectedGroup ? selectedGroup : null
+                }
+                onGroupChange={(group) => setSelectedGroup(group)}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
