@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchProducts } from "../../lib/shopify";
+import { fetchProducts, fetchCollectionsByGroup } from "../../lib/shopify";
 import { ArrowDown, Star } from "lucide-react";
 import CartIcon from "../icons/Cart";
 import Link from "next/link";
@@ -11,9 +11,9 @@ import Heart from "../icons/Heart";
 export function Product({ query: externalQuery = "" }) {
   const searchParams = useSearchParams();
   const titleParam = searchParams.get("title") || "Products";
-  const tabsParam = searchParams.get("tabs") || "";
+  const tabsParam = searchParams.get("tabs");
   const queryParam = searchParams.get("query")?.toLowerCase() || "";
-  const tabs = tabsParam ? tabsParam.split(",") : [];
+  const [tabs, setTabs] = useState(tabsParam ? tabsParam.split(",") : []);
 
   const query = externalQuery ? externalQuery.toLowerCase() : queryParam;
   const [products, setProducts] = useState([]);
@@ -58,6 +58,21 @@ export function Product({ query: externalQuery = "" }) {
     }
     getProducts();
   }, []);
+
+  useEffect(() => {
+    async function loadCollections() {
+      if (!tabsParam) {
+        const groups = await fetchCollectionsByGroup(); // { Grandparents: [...], Theme: [...] }
+        const collections = groups[titleParam] || [];
+        const collectionTitles = collections.map((c) => c.title);
+        setTabs(collectionTitles);
+        setActiveCollection(collectionTitles[0] || ""); // default active
+      } else {
+        setActiveCollection(tabs[0]);
+      }
+    }
+    loadCollections();
+  }, [titleParam, tabsParam]);
 
   if (products.length === 0)
     return (

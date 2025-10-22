@@ -7,15 +7,17 @@ import { Navbar } from "@/components/Navbar";
 import ProductGrid from "@/components/Products/Product-Grid";
 import SearchBar from "@/components/Search/SearchBar";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
+import { Product } from "@/components/Products/Product-List";
 
 export default function Shop() {
-  const [groups, setGroups] = useState({}); // { groupName: [collections] }
+  const [groups, setGroups] = useState({});
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState(""); // local search query
 
   useEffect(() => {
     async function loadGroups() {
       try {
-        const data = await fetchCollectionsByGroup(); // fetches { groupName: [collections] }
+        const data = await fetchCollectionsByGroup();
         setGroups(data);
       } catch (err) {
         console.error("Failed to fetch groups:", err);
@@ -38,20 +40,27 @@ export default function Shop() {
     <div>
       <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
         <Navbar />
-        <SearchBar />
 
-        {Object.entries(groups).map(([groupName, collections]) => (
-          <ProductGrid
-            key={groupName}
-            title={groupName}
-            tabs={collections.map((c) => c.title)} // collection titles as tabs
-            showFilter={false}
-            className="py-6"
-            viewAllUrl={`/Shop/${encodeURIComponent(
-              groupName
-            )}?title=${encodeURIComponent(groupName)}`}
-          />
-        ))}
+        {/* Pass down search state */}
+        <SearchBar query={query} onQueryChange={setQuery} />
+
+        {/* Swap between ProductGrid and Product */}
+        {query.trim() ? (
+          <Product query={query} />
+        ) : (
+          Object.entries(groups).map(([groupName, collections]) => (
+            <ProductGrid
+              key={groupName}
+              title={groupName}
+              tabs={collections.map((c) => c.title)}
+              showFilter={false}
+              className="py-6"
+              viewAllUrl={`/Shop/${encodeURIComponent(
+                groupName
+              )}?title=${encodeURIComponent(groupName)}`}
+            />
+          ))
+        )}
 
         <FAQ />
         <NewsletterSection />

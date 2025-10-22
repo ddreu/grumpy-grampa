@@ -52,9 +52,12 @@ export default function FilterDropdown({
             {(groupedCollections[selectedGroup] || []).map((col) => (
               <label
                 key={col.id}
-                className="flex justify-between items-center py-1"
+                className="flex justify-between items-center py-1 cursor-pointer"
               >
-                <span>{col.title}</span>
+                <span className="text-left">{col.title}</span>
+                {col.selected && (
+                  <span className="w-4 h-4 bg-black rounded-full inline-block"></span>
+                )}
               </label>
             ))}
           </div>
@@ -69,7 +72,11 @@ export default function FilterDropdown({
               <button
                 key={g.name}
                 onClick={() => onGroupChange(g.name)}
-                className="text-left hover:text-black"
+                className={`w-full text-left px-2 py-1 hover:text-black transition ${
+                  selectedGroup === g.name
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-800"
+                }`}
               >
                 {g.name}
               </button>
@@ -78,7 +85,7 @@ export default function FilterDropdown({
         </>
       )}
 
-      {/* ⭐ Filter By Reviews */}
+      {/* Filter By Reviews */}
       <div className="mt-4 mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Reviews
@@ -107,7 +114,7 @@ export default function FilterDropdown({
         </div>
       </div>
 
-      {/* 📦 Filter By Stocks */}
+      {/* Filter By Stocks */}
       <div className="mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Stocks
@@ -119,7 +126,7 @@ export default function FilterDropdown({
         />
       </div>
 
-      {/* 💰 Filter By Price */}
+      {/* Filter By Price */}
       <div className="mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Price
