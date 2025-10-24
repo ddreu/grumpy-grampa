@@ -155,6 +155,209 @@ export const GET_PRODUCT_BY_HANDLE = gql`
   }
 `;
 
+// ----------------------
+// Shopify Cart Functions
+// ----------------------
+
+//  Create Cart
+export const CREATE_CART = gql`
+  mutation CreateCart {
+    cartCreate {
+      cart {
+        id
+        checkoutUrl
+      }
+    }
+  }
+`;
+
+//  Add Line Item to Cart
+export const ADD_TO_CART = gql`
+  mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 20) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  product {
+                    title
+                    handle
+                  }
+                  image {
+                    url
+                  }
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+        cost {
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalAmount {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+`;
+
+//  Get Cart
+export const GET_CART = gql`
+  query GetCart($id: ID!) {
+    cart(id: $id) {
+      id
+      checkoutUrl
+      lines(first: 20) {
+        edges {
+          node {
+            id
+            quantity
+            merchandise {
+              ... on ProductVariant {
+                id
+                title
+                product {
+                  title
+                  handle
+                }
+                image {
+                  url
+                }
+                price {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+        }
+      }
+      cost {
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+`;
+
+//  Remove Line Item
+export const REMOVE_FROM_CART = gql`
+  mutation RemoveFromCart($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        id
+        lines(first: 20) {
+          edges {
+            node {
+              id
+              quantity
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+export const GET_COLLECTIONS_WITH_GROUPS = gql`
+  query getCollectionsWithGroups {
+    collections(first: 50) {
+      edges {
+        node {
+          id
+          title
+          handle
+          metafield(namespace: "filters", key: "group") {
+            value
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function fetchCollectionsByGroup() {
+  try {
+    const data = await shopify.request(GET_COLLECTIONS_WITH_GROUPS);
+
+    const collections = data.collections.edges
+      .map((edge) => {
+        const collection = edge.node;
+        const group = collection.metafield?.value; // no default
+        if (!group) return null; // skip collections without a group
+        return { ...collection, group };
+      })
+      .filter(Boolean); // remove nulls
+
+    const grouped = collections.reduce((acc, col) => {
+      if (!acc[col.group]) acc[col.group] = [];
+      acc[col.group].push(col);
+      return acc;
+    }, {});
+
+    return grouped; // only collections with a group
+  } catch (error) {
+    console.error("Error fetching collections by group:", error);
+    return {};
+  }
+}
+
+// ----------------------
+// Reusable Cart Functions
+// ----------------------
+
+/** Create a new cart and return it */
+export async function createCart() {
+  const data = await shopify.request(CREATE_CART);
+  return data.cartCreate.cart;
+}
+
+/** Fetch a cart by ID */
+export async function fetchCart(id) {
+  const data = await shopify.request(GET_CART, { id });
+  return data.cart;
+}
+
+/** Add product variant to cart */
+export async function addToCart(cartId, variantId, quantity = 1) {
+  const data = await shopify.request(ADD_TO_CART, {
+    cartId,
+    lines: [{ merchandiseId: variantId, quantity }],
+  });
+  return data.cartLinesAdd.cart;
+}
+
+/** Remove line item from cart */
+export async function removeFromCart(cartId, lineId) {
+  const data = await shopify.request(REMOVE_FROM_CART, {
+    cartId,
+    lineIds: [lineId],
+  });
+  return data.cartLinesRemove.cart;
+}
+
 /**
  * Fetch single product by handle
  */

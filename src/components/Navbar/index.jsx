@@ -1,58 +1,70 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   Search,
   ChevronDown,
+  Star,
   Shirt,
   Palette,
   Watch,
   Armchair,
-  Star,
 } from "lucide-react";
+
 import { navItems } from "@/data/NavItems";
 import CartIcon from "@/components/icons/Cart";
 import Link from "next/link";
+import SearchOverlay from "@/components/SearchOverlay";
+import { useCart } from "@/context/CartContext";
+import { fetchCollectionsByGroup } from "@/lib/shopify";
 
 export function Navbar() {
   const pathname = usePathname();
   const [shopOpen, setShopOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [dropdownGroups, setDropdownGroups] = useState([]);
 
+  const { cart } = useCart();
+  const count =
+    cart?.lines?.edges?.reduce((sum, line) => sum + line.node.quantity, 0) || 0;
+
+  const groupIcons = {
+    Grandparents: <Shirt className="w-4 h-4" />,
+    Theme: <Palette className="w-4 h-4" />,
+    Accessories: <Watch className="w-4 h-4" />,
+    "Home & Living": <Armchair className="w-4 h-4" />,
+    Featured: <Star className="w-4 h-4" />,
+  };
   function isNavItemActive(item, pathname) {
     if (item.url === "/") return pathname === "/";
     if (item.title === "Shop") {
-      return pathname.startsWith("/Shop") || pathname.startsWith("/Product");
+      return (
+        pathname.startsWith("/Shop") ||
+        pathname.startsWith("/Product") ||
+        pathname.startsWith("/Cart") ||
+        pathname.startsWith("/Checkout")
+      );
     }
     return pathname.startsWith(item.url);
   }
 
-  const dropdownCategories = [
-    {
-      title: "Grandparents",
-      icon: <Shirt className="w-4 h-4" />,
-      tabs: ["Grampa", "Gramma"],
-    },
-    {
-      title: "Theme",
-      icon: <Palette className="w-4 h-4" />,
-      tabs: ["Typography", "Graphical", "Minimalistic"],
-    },
-    {
-      title: "Accessories",
-      icon: <Watch className="w-4 h-4" />,
-      tabs: ["Socks", "Hats", "Bags"],
-    },
-    {
-      title: "Home & Living",
-      icon: <Armchair className="w-4 h-4" />,
-      tabs: ["Mugs", "Postcards", "Journals"],
-    },
-    {
-      title: "Featured",
-      icon: <Star className="w-4 h-4" />,
-      tabs: ["New Arrivals", "Best Sellers", "Sales"],
-    },
-  ];
+  // Fetch Shopify groups dynamically
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        const groups = await fetchCollectionsByGroup();
+        const formatted = Object.keys(groups).map((groupName) => ({
+          title: groupName,
+          tabs: groups[groupName].map((c) => c.title),
+          icon: groupIcons[groupName] || null, // now works
+        }));
+        setDropdownGroups(formatted);
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
+    }
+    loadGroups();
+  }, []);
 
   return (
     <header className="py-3">
@@ -100,20 +112,20 @@ export function Navbar() {
                       onMouseEnter={() => setShopOpen(true)}
                       onMouseLeave={() => setShopOpen(false)}
                     >
-                      {dropdownCategories.map((category) => (
-                        <li key={category.title}>
+                      {dropdownGroups.map((group) => (
+                        <li key={group.title}>
                           <Link
                             href={`/Shop/${encodeURIComponent(
-                              category.title
+                              group.title
                             )}?title=${encodeURIComponent(
-                              category.title
+                              group.title
                             )}&tabs=${encodeURIComponent(
-                              category.tabs.join(",")
+                              group.tabs.join(",")
                             )}`}
                             className="flex items-center gap-3 px-5 py-2 text-sm text-neutral-900 hover:bg-neutral-900 hover:text-white transition"
                           >
-                            {category.icon}
-                            {category.title}
+                            {group.icon}
+                            {group.title}
                           </Link>
                         </li>
                       ))}
@@ -127,15 +139,25 @@ export function Navbar() {
 
         {/* Right Icons */}
         <div className="flex items-center gap-5 text-sm font-medium">
-          <button className="hover:text-neutral-900 cursor-pointer text-neutral-950 transition">
+          <button
+            className="hover:text-neutral-900 cursor-pointer text-neutral-950 transition"
+            onClick={() => setSearchOpen(true)}
+          >
             <Search size={18} />
           </button>
-          <button className="relative hover:text-neutral-950 transition">
+
+          <Link
+            href="/Cart"
+            className="relative hover:text-neutral-950 transition"
+          >
             <CartIcon size={20} />
-            <span className="absolute -top-2 -right-2 bg-neutral-950 text-neutral-50 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center">
-              4
-            </span>
-          </button>
+            {count > 0 && (
+              <span className="absolute -top-2 -right-2 bg-neutral-950 text-neutral-50 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </Link>
+
           <Link
             href="/account"
             className="text-neutral-950 transition hover:text-neutral-900"
@@ -144,6 +166,9 @@ export function Navbar() {
           </Link>
         </div>
       </div>
+
+      {/* Search Overlay */}
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

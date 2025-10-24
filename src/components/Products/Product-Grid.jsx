@@ -3,12 +3,26 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { fetchProducts } from "@/lib/shopify";
-import { ArrowRight, Filter, Star, User, Gift, Home, Box } from "lucide-react";
+import {
+  ArrowRight,
+  Filter,
+  User,
+  Gift,
+  Home,
+  Box,
+  Shirt,
+  Palette,
+  Watch,
+  Armchair,
+  Star,
+} from "lucide-react";
 import PaginationButtons from "../Buttons/PaginationsButton";
 import CartIcon from "@/components/icons/Cart";
 import Link from "next/link";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
+import FilterDropdown from "../Buttons/FilterDropdown";
+import { fetchCollectionsByGroup } from "@/lib/shopify";
 
 export default function ProductGrid({
   title = "Our Products",
@@ -28,6 +42,13 @@ export default function ProductGrid({
   const totalScrollable = products.length - itemsPerPage;
   const progress =
     totalScrollable > 0 ? (startIndex / totalScrollable) * 100 : 0;
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [groupTabs, setGroupTabs] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+
+  const [groupedCollections, setGroupedCollections] = useState({});
+  const displayTabs =
+    tabs.length > 0 ? tabs.map((t) => ({ name: t, icon: null })) : groupTabs;
 
   const handleDragChange = (newProgress) => {
     const totalScrollable = products.length - itemsPerPage;
@@ -35,7 +56,40 @@ export default function ProductGrid({
     setStartIndex(newStart);
   };
 
+  const GROUP_ICON_MAP = {
+    Grandparents: Shirt,
+    Theme: Palette,
+    Accessories: Watch,
+    "Home & Living": Armchair,
+    Featured: Star,
+  };
+  const DEFAULT_GROUP_ICON = Star;
+
   const visibleRatio = (itemsPerPage / products.length) * 100;
+
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        const groups = await fetchCollectionsByGroup();
+        setGroupedCollections(groups); // 👈 save all grouped collections
+        const tabsArray = Object.keys(groups).map((groupName) => ({
+          name: groupName,
+          icon: GROUP_ICON_MAP[groupName] || DEFAULT_GROUP_ICON,
+        }));
+        setGroupTabs(tabsArray);
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
+    }
+
+    loadGroups();
+  }, []);
+
+  useEffect(() => {
+    if (displayTabs.length > 0 && !selectedGroup) {
+      setSelectedGroup(displayTabs[0].name); // 👈 first tab selected by default
+    }
+  }, [displayTabs, selectedGroup]);
 
   useEffect(() => {
     async function loadProducts() {
@@ -58,6 +112,8 @@ export default function ProductGrid({
       </section>
     );
   }
+
+  // const [groupTabs, setGroupTabs] = useState([]);
 
   const handlePrevious = () =>
     setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
@@ -94,30 +150,26 @@ export default function ProductGrid({
           </div>
 
           {/* Tabs + Filter */}
-          {(tabs.length > 0 || showFilter) && (
+          {(displayTabs.length > 0 || showFilter) && (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
-              {tabs.length > 0 && (
+              {displayTabs.length > 0 && (
                 <div className="flex flex-wrap justify-start gap-3">
-                  {tabs.map((tab, i) => {
-                    const name = typeof tab === "string" ? tab : tab.name;
-                    const IconComponent =
-                      typeof tab === "object" && tab.icon
-                        ? ICONS_MAP[tab.icon]
-                        : null;
+                  {displayTabs.map((tab, i) => {
+                    const IconComponent = tab.icon;
+                    const isActive = selectedGroup === tab.name;
 
                     return (
                       <button
                         key={i}
-                        className={`flex items-center ${
-                          IconComponent ? "gap-2" : ""
-                        } px-4 py-2 text-sm font-medium border rounded-full transition-all ${
-                          i === 0
-                            ? "bg-black text-white"
+                        onClick={() => setSelectedGroup(tab.name)}
+                        className={`flex items-center gap-2 px-4 py-2 text-md font-medium border rounded-full transition-all ${
+                          isActive
+                            ? "bg-black text-white border-black"
                             : "border-gray-300 hover:bg-black hover:text-white"
                         }`}
                       >
                         {IconComponent && <IconComponent size={16} />}
-                        {name}
+                        {tab.name}
                       </button>
                     );
                   })}
@@ -125,18 +177,31 @@ export default function ProductGrid({
               )}
 
               {showFilter && (
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
-                  <Filter size={16} />
-                  Filter By: All
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsFilterOpen((prev) => !prev)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
+                  >
+                    <Filter size={16} />
+                    Filter By: All
+                  </button>
+
+                  <FilterDropdown
+                    open={isFilterOpen}
+                    onClose={() => setIsFilterOpen(false)}
+                    selectedGroup={selectedGroup}
+                    onGroupChange={(group) => setSelectedGroup(group)}
+                    groups={groupTabs}
+                    groupedCollections={groupedCollections}
+                  />
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Product Grid */}
         {/* Product Grid Wrapper */}
-        <div className="overflow-hidden relative">
+        <div className="overflow-hidden relative pb-5">
           <div
             className="flex transition-transform duration-500 ease-in-out"
             style={{

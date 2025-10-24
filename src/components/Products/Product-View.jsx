@@ -13,12 +13,20 @@ import {
 import { fetchProduct } from "@/lib/shopify";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductView({ product }) {
   const [selectedImg, setSelectedImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
   const [zoom, setZoom] = useState({ active: false, x: 0, y: 0 });
+
+  const { addToCart } = useCart();
+  async function handleAdd() {
+    if (!selectedVariant) return;
+    await addToCart(selectedVariant.id, quantity);
+    alert(`${quantity} x ${selectedVariant.title} Added to cart!`);
+  }
 
   if (!product) return null;
 
@@ -298,9 +306,18 @@ export default function ProductView({ product }) {
 
           {/* Buttons */}
           <div className="flex gap-4">
-            <button className="flex-1 border text-neutral-950 border-black py-3 rounded-full hover:bg-black hover:text-white transition font-medium">
+            <button
+              onClick={handleAdd}
+              disabled={!selectedVariant.availableForSale}
+              className={`flex-1 border py-3 rounded-full transition font-medium ${
+                selectedVariant.availableForSale
+                  ? "text-neutral-950 border-black hover:bg-black hover:text-white"
+                  : "text-neutral-400 border-neutral-400 cursor-not-allowed"
+              }`}
+            >
               Add To Cart
             </button>
+
             <button className="flex-1 bg-black text-white py-3 rounded-full hover:bg-gray-900 transition font-medium">
               Check Out
             </button>
