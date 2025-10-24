@@ -2,21 +2,62 @@
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // Add useRef
 import { useCart } from "@/context/CartContext";
 import { fetchProduct } from "@/lib/shopify";
 
 export default function CartPage() {
   const { cart, addToCart, removeFromCart } = useCart();
   const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const previousCartItemsRef = useRef([]); // Add ref to store previous cart items
+  const subtotal = cartItems.reduce(
+    (sum, item) =>
+      sum +
+      item.quantity *
+        parseFloat(item.selectedVariant?.price?.amount || item.price || 0),
+    0
+  );
+
+  const originalTotal = cartItems.reduce(
+    (sum, item) =>
+      sum +
+      item.quantity *
+        parseFloat(
+          item.selectedVariant?.compareAtPrice?.amount || item.price || 0
+        ),
+    0
+  );
+
+  const discountTotal = Math.max(originalTotal - subtotal, 0);
 
   // Step 1: When cart changes fetch full product data
   useEffect(() => {
     async function loadProducts() {
-      if (!cart?.lines?.edges?.length) return;
+      if (!cart?.lines?.edges?.length) {
+        setCartItems([]); // Clear items if cart is empty
+        return;
+      }
 
+      // Preserve existing cart items during loading
       const items = cart.lines.edges.map(({ node }) => {
         const merchandise = node.merchandise;
+
+        // Find existing item from current items or previous items
+        const existingItem =
+          cartItems.find((item) => item.id === node.id) ||
+          previousCartItemsRef.current.find((item) => item.id === node.id);
+
+        // If we have existing data, use it to prevent flickering
+        if (existingItem) {
+          return {
+            ...existingItem,
+            quantity: node.quantity, // Update only the quantity
+            price: parseFloat(merchandise.price?.amount || 0),
+          };
+        }
+
+        // If no existing item, create new basic item
         return {
           id: node.id,
           variantId: merchandise.id,
@@ -29,51 +70,67 @@ export default function CartPage() {
         };
       });
 
-      // Fetch full products for each unique handle
-      const uniqueHandles = [
-        ...new Set(items.map((i) => i.productHandle).filter(Boolean)), // filter out undefined/null
-      ];
+      // Update cart items immediately to preserve state
+      setCartItems(items);
+      previousCartItemsRef.current = items; // Store current items in ref
 
-      const products = await Promise.all(
-        uniqueHandles.map(async (handle) => ({
-          handle,
-          data: await fetchProduct(handle),
-        }))
-      );
+      // Only fetch product data for items that don't have it
+      const itemsNeedingData = items.filter((item) => !item.product);
+      if (itemsNeedingData.length === 0) return;
 
-      // Map full product data back to cart items
-      const enriched = items.map((item) => {
-        const product = products.find(
-          (p) => p.handle === item.productHandle
-        )?.data;
-        if (!product) return item;
+      setIsLoading(true);
+      try {
+        const uniqueHandles = [
+          ...new Set(
+            itemsNeedingData.map((i) => i.productHandle).filter(Boolean)
+          ),
+        ];
 
-        // Find the selected variant inside product
-        const selectedVariant =
-          product.variants.find((v) => v.id === item.variantId) ||
-          product.variants[0];
+        const products = await Promise.all(
+          uniqueHandles.map(async (handle) => ({
+            handle,
+            data: await fetchProduct(handle),
+          }))
+        );
 
-        const discountPercent = selectedVariant.compareAtPrice?.amount
-          ? Math.round(
-              ((parseFloat(selectedVariant.compareAtPrice.amount) -
-                parseFloat(selectedVariant.price.amount)) /
-                parseFloat(selectedVariant.compareAtPrice.amount)) *
-                100
-            )
-          : null;
+        // Update only items that need updating
+        const enriched = items.map((item) => {
+          if (item.product) return item; // Skip if already has product data
 
-        return {
-          ...item,
-          product,
-          selectedVariant,
-          oldPrice: selectedVariant.compareAtPrice?.amount || null,
-          discountPercent,
-          variations:
-            selectedVariant.selectedOptions?.map((opt) => opt.value) || [],
-        };
-      });
+          const product = products.find(
+            (p) => p.handle === item.productHandle
+          )?.data;
+          if (!product) return item;
 
-      setCartItems(enriched);
+          const selectedVariant =
+            product.variants.find((v) => v.id === item.variantId) ||
+            product.variants[0];
+
+          return {
+            ...item,
+            product,
+            selectedVariant,
+            oldPrice: selectedVariant.compareAtPrice?.amount || null,
+            discountPercent:
+              selectedVariant.compareAtPrice?.amount &&
+              Math.round(
+                ((parseFloat(selectedVariant.compareAtPrice.amount) -
+                  parseFloat(selectedVariant.price.amount)) /
+                  parseFloat(selectedVariant.compareAtPrice.amount)) *
+                  100
+              ),
+            variations:
+              selectedVariant.selectedOptions?.map((opt) => opt.value) || [],
+          };
+        });
+
+        setCartItems(enriched);
+        previousCartItemsRef.current = enriched;
+      } catch (error) {
+        console.error("Error loading product data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     loadProducts();
@@ -262,7 +319,7 @@ export default function CartPage() {
             </div>
 
             {/* Summary */}
-            <div className="border-t border-neutral-200 pt-3 space-y-2">
+            {/* <div className="border-t border-neutral-200 pt-3 space-y-2">
               <p className="flex justify-between text-sm text-neutral-600">
                 <span>Subtotal ({cartItems.length} items)</span>
                 <span>${cart?.cost?.subtotalAmount?.amount || "0.00"}</span>
@@ -275,7 +332,23 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>USD {cart?.cost?.totalAmount?.amount || "0.00"}</span>
               </p>
+            </div> */}
+
+            <div className="border-t border-neutral-200 pt-3 space-y-2">
+              <p className="flex justify-between text-sm text-neutral-600">
+                <span>Subtotal ({cartItems.length} items)</span>
+                <span>${originalTotal.toFixed(2)}</span>
+              </p>
+              <p className="flex justify-between text-sm text-neutral-600">
+                <span>Discount</span>
+                <span>-${discountTotal.toFixed(2)}</span>
+              </p>
+              <p className="flex justify-between font-semibold text-neutral-950 text-base pt-2">
+                <span>Total</span>
+                <span>USD {subtotal.toFixed(2)}</span>
+              </p>
             </div>
+
             {/* <Link
               href="/Checkout"
               className="w-full bg-neutral-950 text-white text-sm font-medium py-3 rounded-md hover:bg-neutral-900 transition text-center block"
