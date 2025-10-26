@@ -12,8 +12,16 @@ export default function SearchOverlay({ isOpen, onClose }) {
   const [query, setQuery] = useState("");
   const router = useRouter();
 
+  // useEffect(() => {
+  //   document.body.style.overflow = isOpen ? "hidden" : "auto";
+  // }, [isOpen]);
+
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "auto";
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = isOpen ? "hidden" : prev || "";
+    return () => {
+      document.body.style.overflow = prev || "";
+    };
   }, [isOpen]);
 
   const handleSearch = (e) => {
@@ -107,7 +115,8 @@ export default function SearchOverlay({ isOpen, onClose }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="w-full mt-100 flex flex-col gap-16"
+            // className="w-full mt-100 flex flex-col gap-16"
+            className="w-full mt-[25rem] flex flex-col gap-16"
           >
             <NewsletterSection />
             <Footer />

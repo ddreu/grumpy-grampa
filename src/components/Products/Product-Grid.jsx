@@ -23,6 +23,7 @@ import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
 import FilterDropdown from "../Buttons/FilterDropdown";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductGrid({
   title = "Our Products",
@@ -45,13 +46,20 @@ export default function ProductGrid({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [groupTabs, setGroupTabs] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const { addToCart } = useCart();
 
   const [groupedCollections, setGroupedCollections] = useState({});
   const displayTabs =
     tabs.length > 0 ? tabs.map((t) => ({ name: t, icon: null })) : groupTabs;
 
+  // const handleDragChange = (newProgress) => {
+  //   const totalScrollable = products.length - itemsPerPage;
+  //   const newStart = Math.round((newProgress / 100) * totalScrollable);
+  //   setStartIndex(newStart);
+  // };
+
   const handleDragChange = (newProgress) => {
-    const totalScrollable = products.length - itemsPerPage;
+    const totalScrollable = Math.max(products.length - itemsPerPage, 0);
     const newStart = Math.round((newProgress / 100) * totalScrollable);
     setStartIndex(newStart);
   };
@@ -66,6 +74,14 @@ export default function ProductGrid({
   const DEFAULT_GROUP_ICON = Star;
 
   const visibleRatio = (itemsPerPage / products.length) * 100;
+
+  async function handleAdd(product) {
+    const variant = product.variants?.[0]; // ✅ take first variant as default
+    if (!variant) return; // if no variant, skip
+
+    await addToCart(variant.id, 1); // ✅ add 1 quantity of that variant
+    alert(`${product.title} added to cart!`);
+  }
 
   useEffect(() => {
     async function loadGroups() {
@@ -291,7 +307,14 @@ export default function ProductGrid({
                             </p>
                           </div>
 
-                          <button className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault(); // stop the <Link> from redirecting
+                              e.stopPropagation(); // prevent event bubbling
+                              handleAdd(product); // pass the product or variant to add
+                            }}
+                            className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center"
+                          >
                             <CartIcon size={26} />
                           </button>
                         </div>

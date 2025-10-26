@@ -24,7 +24,7 @@ export default function Home() {
           className="py-12"
           viewAllUrl="/Shop"
         />
-        <AboutSection />
+        <AboutSection showTitle={true} />
         <CustomerReviews />
         <BlogSection />
         <FAQ />

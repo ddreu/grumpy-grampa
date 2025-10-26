@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
+import { useCart } from "@/context/CartContext";
 
 export function Product({ query: externalQuery = "" }) {
   const searchParams = useSearchParams();
@@ -19,6 +20,7 @@ export function Product({ query: externalQuery = "" }) {
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
+  const { addToCart } = useCart();
 
   //  Normalize function to make search forgiving
   const normalize = (str) =>
@@ -41,7 +43,10 @@ export function Product({ query: externalQuery = "" }) {
 
     const matchesQuery = normalizedQuery
       ? normalize(product.title).includes(normalizedQuery) ||
-        normalize(product.descriptionHtml || "").includes(normalizedQuery)
+        // normalize(product.descriptionHtml || "").includes(normalizedQuery)
+        normalize(
+          product.description || product.descriptionHtml || ""
+        ).includes(normalizedQuery)
       : true;
 
     return inCollection && matchesQuery;
@@ -50,6 +55,14 @@ export function Product({ query: externalQuery = "" }) {
   const displayedProducts = showAll
     ? filteredProducts
     : filteredProducts.slice(0, 8);
+
+  async function handleAdd(product) {
+    const variant = product.variants?.[0]; // ✅ take first variant as default
+    if (!variant) return; // if no variant, skip
+
+    await addToCart(variant.id, 1); // ✅ add 1 quantity of that variant
+    alert(`${product.title} added to cart!`);
+  }
 
   useEffect(() => {
     async function getProducts() {
@@ -208,7 +221,11 @@ export function Product({ query: externalQuery = "" }) {
 
                       <button
                         className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center"
-                        onClick={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.preventDefault(); // stop the <Link> from redirecting
+                          e.stopPropagation(); // prevent event bubbling
+                          handleAdd(product); // pass the product or variant to add
+                        }}
                       >
                         <CartIcon size={26} />
                       </button>

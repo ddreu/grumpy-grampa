@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import Image from "next/image";
 
-export default function AboutSection() {
+export default function AboutSection({ showTitle }) {
   const [open, setOpen] = useState("brand");
 
   const toggle = (section) => {
@@ -14,14 +14,16 @@ export default function AboutSection() {
   return (
     <section className="w-full py-20 text-black overflow-hidden">
       {/* ===== Title Section ===== */}
-      <div className="text-center mb-16 px-4">
-        <h1 className="text-3xl md:text-5xl mb-8 font-extrabold">
-          Grumpy by Nature. Legendary by Choice.
-        </h1>
-        <p className="text-lg mt-4 text-gray-600">
-          Turning old-school grit into goods worth bragging about.
-        </p>
-      </div>
+      {showTitle && (
+        <div className="text-center mb-16 px-4">
+          <h1 className="text-3xl md:text-5xl mb-8 font-extrabold">
+            Grumpy by Nature. Legendary by Choice.
+          </h1>
+          <p className="text-lg mt-4 text-gray-600">
+            Turning old-school grit into goods worth bragging about.
+          </p>
+        </div>
+      )}
 
       {/* ===== Main Row ===== */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between md:px-0 px-0">

@@ -118,6 +118,123 @@ export function CartProvider({ children }) {
       setLoading(false);
     }
   }
+  // Update an existing cart line to a different variant
+  async function handleUpdateCartLine(lineId, variant, quantity = 1) {
+    if (!cart?.id) return;
+    if (loading) return;
+
+    setLoading(true);
+
+    const UPDATE_CART_LINES = gql`
+      mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+        cartLinesUpdate(cartId: $cartId, lines: $lines) {
+          cart {
+            id
+            checkoutUrl
+            lines(first: 20) {
+              edges {
+                node {
+                  id
+                  quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                      product {
+                        title
+                        handle
+                      }
+                      price {
+                        amount
+                      }
+                      compareAtPrice {
+                        amount
+                      }
+                      image {
+                        url
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            cost {
+              subtotalAmount {
+                amount
+                currencyCode
+              }
+              totalAmount {
+                amount
+                currencyCode
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    try {
+      // Improve optimistic update to include full variant data
+      setCart((prev) => {
+        if (!prev) return prev;
+        const updatedLines = prev.lines.edges.map((edge) =>
+          edge.node.id === lineId
+            ? {
+                ...edge,
+                node: {
+                  ...edge.node,
+                  quantity,
+                  merchandise: {
+                    ...variant,
+                    product: {
+                      ...variant.product,
+                    },
+                    price: variant.price || edge.node.merchandise.price,
+                    compareAtPrice:
+                      variant.compareAtPrice ||
+                      edge.node.merchandise.compareAtPrice,
+                    image: variant.image || edge.node.merchandise.image,
+                  },
+                },
+              }
+            : edge
+        );
+        return {
+          ...prev,
+          lines: { ...prev.lines, edges: updatedLines },
+        };
+      });
+
+      // Make API request
+      const response = await shopify.request(UPDATE_CART_LINES, {
+        cartId: cart.id,
+        lines: [
+          {
+            id: lineId,
+            merchandiseId: variant.id,
+            quantity,
+          },
+        ],
+      });
+
+      // Update with server response
+      if (response?.cartLinesUpdate?.cart) {
+        setCart(response.cartLinesUpdate.cart);
+      }
+    } catch (err) {
+      console.error("Cart line update error:", err);
+
+      // Revert optimistic update on error
+      const currentCart = await fetchCart(cart.id);
+      setCart(currentCart);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Remove line
   async function handleRemoveFromCart(lineId) {
@@ -141,6 +258,7 @@ export function CartProvider({ children }) {
         loading,
         addToCart: handleAddToCart,
         removeFromCart: handleRemoveFromCart,
+        updateCartLine: handleUpdateCartLine,
       }}
     >
       {children}

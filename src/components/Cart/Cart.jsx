@@ -1,17 +1,24 @@
 "use client";
 import Image from "next/image";
-import { Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react"; // Add useRef
 import { useCart } from "@/context/CartContext";
 import { fetchProduct } from "@/lib/shopify";
 
 export default function CartPage() {
-  const { cart, addToCart, removeFromCart } = useCart();
+  const { cart, addToCart, removeFromCart, updateCartLine } = useCart();
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const previousCartItemsRef = useRef([]); // Add ref to store previous cart items
-  const subtotal = cartItems.reduce(
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [showAll, setShowAll] = useState(false);
+
+  const selectedCartItems = cartItems.filter((item) =>
+    selectedItems.includes(item.id)
+  );
+
+  const subtotal = selectedCartItems.reduce(
     (sum, item) =>
       sum +
       item.quantity *
@@ -19,7 +26,7 @@ export default function CartPage() {
     0
   );
 
-  const originalTotal = cartItems.reduce(
+  const originalTotal = selectedCartItems.reduce(
     (sum, item) =>
       sum +
       item.quantity *
@@ -53,7 +60,9 @@ export default function CartPage() {
           return {
             ...existingItem,
             quantity: node.quantity, // Update only the quantity
-            price: parseFloat(merchandise.price?.amount || 0),
+            price: parseFloat(
+              merchandise?.price?.amount || merchandise?.priceV2?.amount || 0
+            ),
           };
         }
 
@@ -64,7 +73,9 @@ export default function CartPage() {
           variantTitle: merchandise.title,
           productHandle: merchandise.product?.handle,
           productTitle: merchandise.product?.title,
-          price: parseFloat(merchandise.price?.amount || 0),
+          price: parseFloat(
+            merchandise?.price?.amount || merchandise?.priceV2?.amount || 0
+          ),
           image: merchandise?.image?.url || "/placeholder.png",
           quantity: node.quantity,
         };
@@ -136,44 +147,75 @@ export default function CartPage() {
     loadProducts();
   }, [cart]);
 
+  const handleCheckout = async () => {
+    if (selectedCartItems.length === 0) {
+      alert("Please select at least one item to checkout.");
+      return;
+    }
+
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lineItems: selectedCartItems }),
+    });
+
+    const data = await res.json();
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      alert("Failed to start checkout");
+    }
+  };
+
   return (
     <section className="min-h-screen py-10 px-5 sm:px-8 lg:px-20 bg-neutral-50">
-      <h1 className="text-2xl sm:text-3xl font-bold text-neutral-950 mb-8 sm:mb-12">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 mb-8 sm:mb-12">
         Shopping Cart
       </h1>
 
       <div className="flex flex-col lg:flex-row gap-10">
         {/* Cart Items */}
         <div className="flex-1 space-y-6">
-          {cartItems.map((item) => (
+          {(showAll ? cartItems : cartItems.slice(0, 4)).map((item) => (
             <div
               key={item.id}
-              className="flex flex-col sm:flex-row sm:items-start gap-4 bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 relative shadow-sm"
+              className="flex flex-col sm:flex-row sm:items-start gap-4 bg-white border border-neutral-200 rounded-4xl p-4 sm:p-5 relative shadow-sm"
             >
               {/* Checkbox */}
-              <div className="absolute top-4 left-4 sm:static flex-shrink-0">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 accent-neutral-950 cursor-pointer"
-                />
-              </div>
+              <input
+                type="checkbox"
+                className="w-5 h-5 accent-neutral-950 cursor-pointer"
+                checked={selectedItems.includes(item.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedItems((prev) => [...prev, item.id]);
+                  } else {
+                    setSelectedItems((prev) =>
+                      prev.filter((id) => id !== item.id)
+                    );
+                  }
+                }}
+              />
 
               {/* Remove button */}
-              <div
-                className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900 cursor-pointer sm:static sm:order-3 sm:ml-auto"
+
+              <button
+                type="button"
+                aria-label={`Remove ${item.productTitle} from cart`}
+                className="absolute top-4 right-4 text-red-500 hover:text-neutral-900 cursor-pointer sm:static sm:order-3 sm:ml-auto"
                 onClick={() => removeFromCart(item.id)}
               >
-                <Trash2 size={18} />
-              </div>
+                <Trash2 size={21} />
+              </button>
 
               {/* Product details */}
               <div className="flex items-start gap-3 sm:gap-4 flex-1">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 relative rounded-md overflow-hidden flex-shrink-0">
+                <div className="w-33 h-48 mr-2 relative rounded-xl overflow-hidden flex-shrink-1">
                   <Image
                     src={item.image}
                     alt={item.productTitle}
                     fill
-                    className="object-cover"
+                    className="object-fill"
                   />
                 </div>
 
@@ -183,7 +225,7 @@ export default function CartPage() {
                   </h2>
 
                   {/* Price Section */}
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3">
                     <span className="text-2xl font-semibold text-gradient-gold">
                       $
                       {item.selectedVariant?.price?.amount
@@ -209,30 +251,75 @@ export default function CartPage() {
                   </div>
 
                   {/* All Variants */}
-                  {item.product?.variants?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {item.product.variants.map((variant) => {
-                        const isSelected = variant.id === item.variantId;
-                        return (
-                          <button
-                            key={variant.id}
-                            onClick={async () => {
-                              // change variant logic
-                              if (variant.id !== item.variantId) {
-                                await removeFromCart(item.id); // remove current line
-                                await addToCart(variant.id, item.quantity); // add selected variant
-                              }
-                            }}
-                            className={`border rounded-md px-3 py-1 text-sm transition ${
-                              isSelected
-                                ? "bg-black text-white border-black"
-                                : "border-neutral-300 text-neutral-700 hover:bg-neutral-200"
-                            }`}
-                          >
-                            {variant.title}
-                          </button>
-                        );
-                      })}
+                  {/* Variants (hide if only Default Title exists) */}
+                  {item.product?.variants?.length > 1 && (
+                    <div className="mt-2">
+                      <p className="text-sm font-semibold mb-2 text-neutral-950">
+                        Variants:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {item.product.variants.map((variant) => {
+                          if (variant.title === "Default Title") return null;
+
+                          const isSelected = variant.id === item.variantId;
+                          return (
+                            <button
+                              key={variant.id}
+                              onClick={async () => {
+                                if (variant.id !== item.variantId) {
+                                  // Update the cart line in backend
+                                  await updateCartLine(
+                                    item.id,
+                                    variant,
+                                    item.quantity
+                                  );
+
+                                  // Update the UI immediately
+                                  setCartItems((prev) =>
+                                    prev.map((i) =>
+                                      i.id === item.id
+                                        ? {
+                                            ...i,
+                                            variantId: variant.id,
+                                            selectedVariant: variant,
+                                            price: parseFloat(
+                                              variant.price.amount
+                                            ),
+                                            oldPrice:
+                                              variant.compareAtPrice?.amount ||
+                                              null,
+                                            discountPercent:
+                                              variant.compareAtPrice?.amount &&
+                                              Math.round(
+                                                ((parseFloat(
+                                                  variant.compareAtPrice.amount
+                                                ) -
+                                                  parseFloat(
+                                                    variant.price.amount
+                                                  )) /
+                                                  parseFloat(
+                                                    variant.compareAtPrice
+                                                      .amount
+                                                  )) *
+                                                  100
+                                              ),
+                                          }
+                                        : i
+                                    )
+                                  );
+                                }
+                              }}
+                              className={`border rounded-md px-3 py-1 text-sm transition bg-neutral-200 ${
+                                isSelected
+                                  ? "text-neutral-950 border-black"
+                                  : "border-neutral-300 text-neutral-950 hover:bg-neutral-200"
+                              }`}
+                            >
+                              {variant.title}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
@@ -254,7 +341,7 @@ export default function CartPage() {
                             await removeFromCart(item.id);
                           }
                         }}
-                        className="w-10 h-10 text-neutral-950 bg-neutral-200 flex items-center justify-center border border-neutral-950 rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
+                        className="w-10 h-10 text-neutral-950 bg-neutral-200 flex items-center justify-center rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
                       >
                         -
                       </button>
@@ -269,13 +356,13 @@ export default function CartPage() {
                             item.id
                           )
                         }
-                        className="w-16 border bg-neutral-200 text-neutral-950 border-neutral-950 rounded-md px-3 py-2 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance:textfield]"
+                        className="w-16 border h-10 bg-neutral-200 text-neutral-950 border-neutral-950 rounded-md px-3 py-2 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance:textfield]"
                       />
                       <button
                         onClick={() =>
                           addToCart(item.variantId, item.quantity + 1, item.id)
                         }
-                        className="w-10 h-10 bg-neutral-200 text-neutral-950 flex items-center justify-center border border-neutral-950 rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
+                        className="w-10 h-10 bg-neutral-200 text-neutral-950 flex items-center justify-center rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
                       >
                         +
                       </button>
@@ -286,14 +373,27 @@ export default function CartPage() {
             </div>
           ))}
 
-          <button className="mx-auto block text-neutral-600 border border-neutral-300 rounded-full px-6 py-2 text-sm hover:bg-neutral-200 transition">
-            See More
-          </button>
+          {cartItems.length > 4 && (
+            <button
+              onClick={() => setShowAll((prev) => !prev)}
+              className="mx-auto flex items-center gap-2 text-neutral-950 border border-neutral-950 rounded-full px-6 py-2 text-md hover:bg-neutral-200 transition"
+            >
+              {showAll ? (
+                <>
+                  See Less <ArrowUp size={16} />
+                </>
+              ) : (
+                <>
+                  See More <ArrowDown size={16} /> ({cartItems.length - 4} more)
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Right: Summary */}
         <div className="w-full lg:w-1/3">
-          <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-5 shadow-sm sticky top-6">
+          <div className="rounded-xl p-6 space-y-5 sticky top-6">
             {/* Discount */}
             <div>
               <p className="font-semibold text-neutral-900 mb-2">Discount</p>
@@ -303,7 +403,7 @@ export default function CartPage() {
                   placeholder="Type in your discount code"
                   className="border border-neutral-300 rounded-md flex-1 px-3 py-2 text-sm outline-none"
                 />
-                <button className="bg-neutral-950 text-white text-sm px-4 py-2 rounded-md hover:bg-neutral-800 transition">
+                <button className="bg-neutral-950 text-white text-sm px-8 py-4 rounded-md hover:bg-neutral-800 transition">
                   Apply
                 </button>
               </div>
@@ -335,8 +435,9 @@ export default function CartPage() {
             </div> */}
 
             <div className="border-t border-neutral-200 pt-3 space-y-2">
+              <h2 className="text-lg font-bold mb-5">Summary</h2>
               <p className="flex justify-between text-sm text-neutral-600">
-                <span>Subtotal ({cartItems.length} items)</span>
+                <span>Subtotal ({selectedCartItems.length} items)</span>
                 <span>${originalTotal.toFixed(2)}</span>
               </p>
               <p className="flex justify-between text-sm text-neutral-600">
@@ -355,8 +456,13 @@ export default function CartPage() {
             >
               Check Out
             </Link> */}
-            <button
+            {/* <button
               onClick={() => {
+                if (selectedItems.length === 0) {
+                  alert("Please select at least one item to checkout.");
+                  return;
+                }
+
                 if (cart?.checkoutUrl) {
                   window.location.href = cart.checkoutUrl;
                 } else {
@@ -364,8 +470,12 @@ export default function CartPage() {
                 }
               }}
               className="w-full bg-neutral-950 text-white text-sm font-medium py-3 rounded-md hover:bg-neutral-900 transition text-center block"
+            > */}
+            <button
+              onClick={handleCheckout}
+              className="w-full bg-neutral-950 cursor-pointer text-white text-sm font-medium py-3 rounded-md hover:bg-neutral-900 transition text-center block"
             >
-              Check Out
+              Check Out ({selectedItems.length})
             </button>
           </div>
         </div>
