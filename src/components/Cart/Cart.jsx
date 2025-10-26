@@ -159,12 +159,21 @@ export default function CartPage() {
               </div>
 
               {/* Remove button */}
-              <div
+              {/* <div
                 className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900 cursor-pointer sm:static sm:order-3 sm:ml-auto"
                 onClick={() => removeFromCart(item.id)}
               >
                 <Trash2 size={18} />
-              </div>
+              </div> */}
+
+              <button
+                type="button"
+                aria-label={`Remove ${item.productTitle} from cart`}
+                className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900 cursor-pointer sm:static sm:order-3 sm:ml-auto"
+                onClick={() => removeFromCart(item.id)}
+              >
+                <Trash2 size={18} />
+              </button>
 
               {/* Product details */}
               <div className="flex items-start gap-3 sm:gap-4 flex-1">

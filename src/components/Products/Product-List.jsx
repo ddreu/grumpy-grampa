@@ -41,7 +41,10 @@ export function Product({ query: externalQuery = "" }) {
 
     const matchesQuery = normalizedQuery
       ? normalize(product.title).includes(normalizedQuery) ||
-        normalize(product.descriptionHtml || "").includes(normalizedQuery)
+        // normalize(product.descriptionHtml || "").includes(normalizedQuery)
+        normalize(
+          product.description || product.descriptionHtml || ""
+        ).includes(normalizedQuery)
       : true;
 
     return inCollection && matchesQuery;

@@ -50,8 +50,14 @@ export default function ProductGrid({
   const displayTabs =
     tabs.length > 0 ? tabs.map((t) => ({ name: t, icon: null })) : groupTabs;
 
+  // const handleDragChange = (newProgress) => {
+  //   const totalScrollable = products.length - itemsPerPage;
+  //   const newStart = Math.round((newProgress / 100) * totalScrollable);
+  //   setStartIndex(newStart);
+  // };
+
   const handleDragChange = (newProgress) => {
-    const totalScrollable = products.length - itemsPerPage;
+    const totalScrollable = Math.max(products.length - itemsPerPage, 0);
     const newStart = Math.round((newProgress / 100) * totalScrollable);
     setStartIndex(newStart);
   };
