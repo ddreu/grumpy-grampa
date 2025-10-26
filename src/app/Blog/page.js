@@ -1,5 +1,5 @@
+import BlogGrid from "@/components/blog/BlogGrid";
 import Footer from "@/components/Footer/Footer";
-import BlogSection from "@/components/home-layout/BlogSection";
 import FAQ from "@/components/home-layout/Faq";
 import NewsletterSection from "@/components/home-layout/Newsletter";
 import { Navbar } from "@/components/Navbar";
@@ -9,7 +9,7 @@ export default function BlogPage() {
     <div>
       <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
         <Navbar />
-        <BlogSection />
+        <BlogGrid />
         <FAQ />
         <NewsletterSection />
       </main>

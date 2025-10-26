@@ -126,16 +126,16 @@ export default function Footer() {
           <h4 className="font-semibold mb-4">Information</h4>
           <ul className="space-y-2 text-neutral-500">
             <li>
-              <a href="#">Privacy Policy</a>
+              <a href="/PrivacyPolicy">Privacy Policy</a>
             </li>
             <li>
-              <a href="#">Terms of Service</a>
+              <a href="/TermsOfService">Terms of Service</a>
             </li>
             <li>
-              <a href="#">Refund Policy</a>
+              <a href="/RefundPolicy">Refund Policy</a>
             </li>
             <li>
-              <a href="#">Shopping Policy</a>
+              <a href="/ShoppingPolicy">Shopping Policy</a>
             </li>
           </ul>
         </div>
