@@ -23,6 +23,8 @@ import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
 import FilterDropdown from "../Buttons/FilterDropdown";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
+import { toast } from "sonner";
+
 import { useCart } from "@/context/CartContext";
 
 export default function ProductGrid({
@@ -75,12 +77,34 @@ export default function ProductGrid({
 
   const visibleRatio = (itemsPerPage / products.length) * 100;
 
-  async function handleAdd(product) {
-    const variant = product.variants?.[0]; // ✅ take first variant as default
-    if (!variant) return; // if no variant, skip
+  // async function handleAdd(product) {
+  //   const variant = product.variants?.[0]; //  take first variant as default
+  //   if (!variant) return; // if no variant, skip
 
-    await addToCart(variant.id, 1); // ✅ add 1 quantity of that variant
-    alert(`${product.title} added to cart!`);
+  //   await addToCart(variant.id, 1); //  add 1 quantity of that variant
+  //   alert(`${product.title} added to cart!`);
+  // }
+
+  async function handleAdd(product) {
+    const variant = product.variants?.[0];
+    if (!variant) return;
+
+    try {
+      await addToCart(variant.id, 1);
+
+      // Sonner toast instead of alert
+      toast.success(`${product.title} added to cart!`, {
+        description: "View your cart to checkout.",
+        action: {
+          label: "View Cart",
+          onClick: () => (window.location.href = "/Cart"),
+        },
+      });
+    } catch (error) {
+      toast.error("Failed to add to cart.", {
+        description: "Please try again.",
+      });
+    }
   }
 
   useEffect(() => {
