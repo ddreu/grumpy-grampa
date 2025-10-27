@@ -51,8 +51,73 @@ export function CartProvider({ children }) {
     try {
       let updatedCart;
 
-      if (lineId) {
-        // Update quantity of existing line
+      // 1️⃣ Always fetch the latest cart to ensure we have current line IDs
+      const currentCart = await fetchCart(cart.id);
+
+      // 2️⃣ Check if this variant already exists in cart
+      const existingLine = currentCart.lines.edges.find(
+        (edge) => edge.node.merchandise.id === variantId
+      );
+
+      if (existingLine) {
+        // If variant already exists, update its quantity instead of adding a new line
+        const newQuantity = existingLine.node.quantity + quantity;
+
+        const UPDATE_CART_LINES = gql`
+          mutation UpdateCartLines(
+            $cartId: ID!
+            $lines: [CartLineUpdateInput!]!
+          ) {
+            cartLinesUpdate(cartId: $cartId, lines: $lines) {
+              cart {
+                id
+                checkoutUrl
+                lines(first: 20) {
+                  edges {
+                    node {
+                      id
+                      quantity
+                      merchandise {
+                        ... on ProductVariant {
+                          id
+                          title
+                          price {
+                            amount
+                          }
+                          compareAtPrice {
+                            amount
+                          }
+                          image {
+                            url
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                cost {
+                  subtotalAmount {
+                    amount
+                    currencyCode
+                  }
+                  totalAmount {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        `;
+
+        const data = await shopify.request(UPDATE_CART_LINES, {
+          cartId: cart.id,
+          lines: [{ id: existingLine.node.id, quantity: newQuantity }],
+        });
+
+        updatedCart = data.cartLinesUpdate.cart;
+      } else if (lineId) {
+        // If specific lineId provided → just update it directly
         const UPDATE_CART_LINES = gql`
           mutation UpdateCartLines(
             $cartId: ID!
@@ -107,7 +172,7 @@ export function CartProvider({ children }) {
 
         updatedCart = data.cartLinesUpdate.cart;
       } else {
-        // Add new line
+        // Otherwise, add as a new line
         updatedCart = await shopifyAddToCart(cart.id, variantId, quantity);
       }
 
@@ -118,6 +183,7 @@ export function CartProvider({ children }) {
       setLoading(false);
     }
   }
+
   // Update an existing cart line to a different variant
   async function handleUpdateCartLine(lineId, variant, quantity = 1) {
     if (!cart?.id) return;

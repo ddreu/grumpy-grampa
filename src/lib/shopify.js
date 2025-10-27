@@ -298,6 +298,38 @@ export const GET_COLLECTIONS_WITH_GROUPS = gql`
   }
 `;
 
+export const UPDATE_CART_LINE = gql`
+  mutation UpdateCartLine($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+    cartLinesUpdate(cartId: $cartId, lines: $lines) {
+      cart {
+        id
+        lines(first: 20) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function updateCartLine(cartId, lineId, quantity) {
+  const data = await shopify.request(UPDATE_CART_LINE, {
+    cartId,
+    lines: [{ id: lineId, quantity }],
+  });
+  return data.cartLinesUpdate.cart;
+}
+
 export async function fetchCollectionsByGroup() {
   try {
     const data = await shopify.request(GET_COLLECTIONS_WITH_GROUPS);

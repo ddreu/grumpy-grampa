@@ -328,7 +328,7 @@ export default function ProductView({ product }) {
             <button
               onClick={handleAdd}
               disabled={!selectedVariant.availableForSale}
-              className={`flex-1 border py-3 rounded-full transition font-medium ${
+              className={`flex-1 cursor-pointer border py-3 rounded-full transition font-medium ${
                 selectedVariant.availableForSale
                   ? "text-neutral-950 border-black hover:bg-black hover:text-white"
                   : "text-neutral-400 border-neutral-400 cursor-not-allowed"
@@ -337,7 +337,7 @@ export default function ProductView({ product }) {
               Add To Cart
             </button>
 
-            <button className="flex-1 bg-black text-white py-3 rounded-full hover:bg-gray-900 transition font-medium">
+            <button className="flex-1 cursor-pointer bg-black text-white py-3 rounded-full hover:bg-gray-900 transition font-medium">
               Check Out
             </button>
           </div>
