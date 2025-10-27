@@ -18,7 +18,7 @@ import SearchOverlay from "@/components/SearchOverlay";
 import { useCart } from "@/context/CartContext";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
 
-export function Navbar() {
+export function Navbar({ buttonLabel, buttonHref }) {
   const pathname = usePathname();
   const [shopOpen, setShopOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -158,12 +158,27 @@ export function Navbar() {
             )}
           </Link>
 
-          <Link
-            href="/account"
-            className="text-neutral-950 text-[1rem] font-semibold transition hover:text-neutral-900"
+          {/* <Link
+            href="/Sign-in"
+            className="text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
           >
             Sign In
-          </Link>
+          </Link> */}
+          {buttonLabel && buttonHref ? (
+            <Link
+              href={buttonHref}
+              className="text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
+            >
+              {buttonLabel}
+            </Link>
+          ) : (
+            <Link
+              href="/Sign-in"
+              className="text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
 
