@@ -1,16 +1,13 @@
 import Footer from "@/components/Footer/Footer";
-import FAQ from "@/components/FaqPage";
-import NewsletterSection from "@/components/home-layout/Newsletter";
 import { Navbar } from "@/components/Navbar";
+import TermsOfService from "@/components/TermsOfService";
 
-export default function FaqsPage() {
+export default function TermsOfServicePage() {
   return (
     <div>
       <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
         <Navbar />
-
-        <FAQ />
-        <NewsletterSection />
+        <TermsOfService />
       </main>
       <Footer />
     </div>

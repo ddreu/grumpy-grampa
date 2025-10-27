@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Flag from "react-world-flags";
+import FooterShopLinks from "./FooterShopLinks";
 
 export default function Footer() {
   return (
@@ -73,25 +74,25 @@ export default function Footer() {
           <h4 className="font-semibold mb-4">Quick Links</h4>
           <ul className="space-y-2 text-neutral-500">
             <li>
-              <a href="#">Home</a>
+              <a href="/">Home</a>
             </li>
             <li>
-              <a href="#">About Us</a>
+              <a href="/About">About Us</a>
             </li>
             <li>
-              <a href="#">Reviews</a>
+              <a href="/Reviews">Reviews</a>
             </li>
             <li>
-              <a href="#">Contact</a>
+              <a href="/Contact">Contact</a>
             </li>
             <li>
-              <a href="#">FAQ</a>
+              <a href="/Faqs">FAQ</a>
             </li>
             <li>
-              <a href="#">Blog</a>
+              <a href="/Blog">Blog</a>
             </li>
             <li>
-              <a href="#">Shopping Cart</a>
+              <a href="/Cart">Shopping Cart</a>
             </li>
             <li>
               <a href="#">Sign In</a>
@@ -101,24 +102,7 @@ export default function Footer() {
 
         {/* Shop */}
         <div>
-          <h4 className="font-semibold mb-4">Shop</h4>
-          <ul className="space-y-2 text-neutral-500">
-            <li>
-              <a href="#">Grandparents</a>
-            </li>
-            <li>
-              <a href="#">Theme</a>
-            </li>
-            <li>
-              <a href="#">Accessories</a>
-            </li>
-            <li>
-              <a href="#">Home & Living</a>
-            </li>
-            <li>
-              <a href="#">Featured</a>
-            </li>
-          </ul>
+          <FooterShopLinks />
         </div>
 
         {/* Information */}
@@ -126,16 +110,16 @@ export default function Footer() {
           <h4 className="font-semibold mb-4">Information</h4>
           <ul className="space-y-2 text-neutral-500">
             <li>
-              <a href="#">Privacy Policy</a>
+              <a href="/PrivacyPolicy">Privacy Policy</a>
             </li>
             <li>
-              <a href="#">Terms of Service</a>
+              <a href="/TermsOfService">Terms of Service</a>
             </li>
             <li>
-              <a href="#">Refund Policy</a>
+              <a href="/RefundPolicy">Refund Policy</a>
             </li>
             <li>
-              <a href="#">Shopping Policy</a>
+              <a href="/ShoppingPolicy">Shopping Policy</a>
             </li>
           </ul>
         </div>

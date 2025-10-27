@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Minus, Search, ArrowDown } from "lucide-react";
-import ViewAllButton from "../Buttons/ViewAllButton";
+import ViewAllButton from "./Buttons/ViewAllButton";
 
 const faqs = [
   {

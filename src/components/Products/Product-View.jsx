@@ -13,6 +13,8 @@ import {
 import { fetchProduct } from "@/lib/shopify";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
+import { toast } from "sonner";
+
 import { useCart } from "@/context/CartContext";
 
 export default function ProductView({ product }) {
@@ -22,10 +24,27 @@ export default function ProductView({ product }) {
   const [zoom, setZoom] = useState({ active: false, x: 0, y: 0 });
 
   const { addToCart } = useCart();
+  // async function handleAdd() {
+  //   if (!selectedVariant) return;
+  //   await addToCart(selectedVariant.id, quantity);
+  //   alert(`${quantity} x ${selectedVariant.title} Added to cart!`);
+  // }
+
   async function handleAdd() {
     if (!selectedVariant) return;
-    await addToCart(selectedVariant.id, quantity);
-    alert(`${quantity} x ${selectedVariant.title} Added to cart!`);
+
+    try {
+      await addToCart(selectedVariant.id, quantity);
+
+      const displayTitle =
+        selectedVariant.title === "Default Title"
+          ? product.title
+          : selectedVariant.title;
+
+      toast.success(`${quantity} × ${displayTitle} added to cart!`);
+    } catch (error) {
+      toast.error("Failed to add to cart. Please try again.");
+    }
   }
 
   if (!product) return null;
@@ -309,7 +328,7 @@ export default function ProductView({ product }) {
             <button
               onClick={handleAdd}
               disabled={!selectedVariant.availableForSale}
-              className={`flex-1 border py-3 rounded-full transition font-medium ${
+              className={`flex-1 cursor-pointer border py-3 rounded-full transition font-medium ${
                 selectedVariant.availableForSale
                   ? "text-neutral-950 border-black hover:bg-black hover:text-white"
                   : "text-neutral-400 border-neutral-400 cursor-not-allowed"
@@ -318,7 +337,7 @@ export default function ProductView({ product }) {
               Add To Cart
             </button>
 
-            <button className="flex-1 bg-black text-white py-3 rounded-full hover:bg-gray-900 transition font-medium">
+            <button className="flex-1 cursor-pointer bg-black text-white py-3 rounded-full hover:bg-gray-900 transition font-medium">
               Check Out
             </button>
           </div>

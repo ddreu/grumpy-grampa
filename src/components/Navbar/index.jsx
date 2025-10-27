@@ -67,14 +67,14 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="py-3">
+    <header className="py-3 px-4">
       <div className="container mx-auto z-20 flex items-center justify-between px-8 lg:py-4 lg:px-22">
         {/* Logo */}
         <div>
           <img
             src="/Black_Wordmark.svg"
             alt="Grumpy Grampa Logo"
-            className="h-8 w-auto object-contain"
+            className="h-9 w-auto object-contain"
           />
         </div>
 
@@ -138,19 +138,19 @@ export function Navbar() {
         </nav>
 
         {/* Right Icons */}
-        <div className="flex items-center gap-5 text-sm font-medium">
+        <div className="flex items-center gap-7 text-sm font-medium">
           <button
             className="hover:text-neutral-900 cursor-pointer text-neutral-950 transition"
             onClick={() => setSearchOpen(true)}
           >
-            <Search size={18} />
+            <Search size={22} />
           </button>
 
           <Link
             href="/Cart"
             className="relative hover:text-neutral-950 transition"
           >
-            <CartIcon size={20} />
+            <CartIcon size={22} />
             {count > 0 && (
               <span className="absolute -top-2 -right-2 bg-neutral-950 text-neutral-50 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center">
                 {count}
@@ -160,7 +160,7 @@ export function Navbar() {
 
           <Link
             href="/account"
-            className="text-neutral-950 transition hover:text-neutral-900"
+            className="text-neutral-950 text-[1rem] font-semibold transition hover:text-neutral-900"
           >
             Sign In
           </Link>
