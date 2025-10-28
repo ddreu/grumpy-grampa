@@ -349,11 +349,32 @@ export const GET_BLOG_ARTICLES = gql`
   }
 `;
 
-export async function fetchBlogArticleByHandle(handle) {
+// export async function fetchBlogArticleByHandle(handle) {
+//   const query = gql`
+//     query ArticleByHandle($handle: String!) {
+//       blog(handle: "news") {
+//         articleByHandle(handle: $handle) {
+//           id
+//           title
+//           contentHtml
+//           excerpt
+//           publishedAt
+//           image {
+//             url
+//             altText
+//           }
+//         }
+//       }
+//     }
+//   `;
+export async function fetchBlogArticleByHandle(
+  articleHandle,
+  blogHandle = "news"
+) {
   const query = gql`
-    query ArticleByHandle($handle: String!) {
-      blog(handle: "news") {
-        articleByHandle(handle: $handle) {
+    query ArticleByHandle($blogHandle: String!, $articleHandle: String!) {
+      blog(handle: $blogHandle) {
+        articleByHandle(handle: $articleHandle) {
           id
           title
           contentHtml
@@ -369,7 +390,11 @@ export async function fetchBlogArticleByHandle(handle) {
   `;
 
   try {
-    const data = await shopify.request(query, { handle });
+    // const data = await shopify.request(query, { handle });
+    const data = await shopify.request(query, {
+      blogHandle,
+      articleHandle,
+    });
     return data.blog?.articleByHandle || null;
   } catch (error) {
     console.error("Error fetching blog article by handle:", error);
