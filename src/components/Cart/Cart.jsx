@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react"; // Add useRef
 import { useCart } from "@/context/CartContext";
@@ -376,7 +376,7 @@ export default function CartPage() {
                           }
                           className="w-8 h-8 text-neutral-950 bg-neutral-200 flex items-center justify-center rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
                         >
-                          -
+                          <Minus className="w-4 h-4" />
                         </button>
                         <input
                           type="number"
@@ -401,7 +401,7 @@ export default function CartPage() {
                           }
                           className="w-8 h-8 bg-neutral-200 text-neutral-950 flex items-center justify-center rounded-md hover:bg-neutral-100 transition text-lg font-semibold"
                         >
-                          +
+                          <Plus className="w-4 h-4" />
                         </button>
                       </div>
                     </div>

@@ -98,7 +98,7 @@ export default function FAQ() {
         })}
       </div>
 
-      <ViewAllButton />
+      <ViewAllButton url="/Faqs" />
     </section>
   );
 }

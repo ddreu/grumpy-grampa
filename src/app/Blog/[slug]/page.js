@@ -6,9 +6,11 @@ import Link from "next/link";
 import FAQ from "@/components/home-layout/Faq";
 import NewsletterSection from "@/components/home-layout/Newsletter";
 import CalendarIcon from "@/components/icons/Calendar";
+import { ChevronRight } from "lucide-react";
 
 export default async function BlogViewPage({ params }) {
-  const { slug } = params;
+  // const { slug } = params;
+  const { slug } = await params;
 
   // Fetch the article using the handle (slug)
   const blog = await fetchBlogArticleByHandle(slug);
@@ -23,16 +25,16 @@ export default async function BlogViewPage({ params }) {
 
   return (
     <div>
-      <Navbar buttonLabel="Back to Blog" buttonHref="/blog" />
+      <Navbar />
 
       <main className="max-w-7xl mx-auto py-10 px-6">
         {/* Breadcrumb */}
         {/* <div className="pb-28"> */}
-        <div className="text-lg font-bold text-neutral-500 mb-12">
+        <div className="text-md font-bold text-neutral-500 mb-12 flex items-center gap-2">
           <Link href="/Blog" className="hover:underline text-neutral-700">
             All Blogs
-          </Link>{" "}
-          <span className="text-neutral-400">›</span>{" "}
+          </Link>
+          <ChevronRight className="w-4 h-4 text-neutral-400" />
           <span className="text-neutral-950">{blog.title}</span>
         </div>
 
