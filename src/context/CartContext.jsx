@@ -9,13 +9,16 @@ import {
   shopify,
 } from "@/lib/shopify";
 import { gql } from "graphql-request";
+import { toast } from "sonner";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  function normalizeId(id) {
+    return id?.startsWith("gid://") ? id : `gid://shopify/ProductVariant/${id}`;
+  }
   // Initialize cart on load
   useEffect(() => {
     async function initCart() {
@@ -55,8 +58,12 @@ export function CartProvider({ children }) {
       const currentCart = await fetchCart(cart.id);
 
       // 2️⃣ Check if this variant already exists in cart
+      // const existingLine = currentCart.lines.edges.find(
+      //   (edge) => edge.node.merchandise.id === variantId
+      // );
+      const normalizedVariantId = normalizeId(variantId);
       const existingLine = currentCart.lines.edges.find(
-        (edge) => edge.node.merchandise.id === variantId
+        (edge) => normalizeId(edge.node.merchandise.id) === normalizedVariantId
       );
 
       if (existingLine) {
@@ -173,10 +180,30 @@ export function CartProvider({ children }) {
         updatedCart = data.cartLinesUpdate.cart;
       } else {
         // Otherwise, add as a new line
-        updatedCart = await shopifyAddToCart(cart.id, variantId, quantity);
+        // updatedCart = await shopifyAddToCart(cart.id, variantId, quantity);
+        updatedCart = await shopifyAddToCart(
+          cart.id,
+          normalizedVariantId,
+          quantity
+        );
       }
 
       setCart(updatedCart);
+
+      // check for stock
+
+      // Find the affected line
+      const affectedLine = updatedCart.lines.edges.find(
+        (line) => normalizeId(line.node.merchandise.id) === normalizedVariantId
+      );
+
+      // Show toast if requested quantity exceeds available stock
+      if (affectedLine && affectedLine.node.quantity < quantity) {
+        toast.error(
+          `Only ${affectedLine.node.quantity} of this item available`,
+          { description: "Cannot add more than available stock." }
+        );
+      }
     } catch (err) {
       console.error("Cart update error:", err);
     } finally {
@@ -244,57 +271,69 @@ export function CartProvider({ children }) {
     `;
 
     try {
-      // Improve optimistic update to include full variant data
-      setCart((prev) => {
-        if (!prev) return prev;
-        const updatedLines = prev.lines.edges.map((edge) =>
-          edge.node.id === lineId
-            ? {
-                ...edge,
-                node: {
-                  ...edge.node,
-                  quantity,
-                  merchandise: {
-                    ...variant,
-                    product: {
-                      ...variant.product,
-                    },
-                    price: variant.price || edge.node.merchandise.price,
-                    compareAtPrice:
-                      variant.compareAtPrice ||
-                      edge.node.merchandise.compareAtPrice,
-                    image: variant.image || edge.node.merchandise.image,
-                  },
-                },
-              }
-            : edge
-        );
-        return {
-          ...prev,
-          lines: { ...prev.lines, edges: updatedLines },
-        };
+      console.log("🟡 Updating line:", { lineId, quantity, variant });
+
+      // 🧠 Validate IDs
+      if (!lineId?.startsWith("gid://")) {
+        console.warn("⚠️ lineId is not a Shopify GID:", lineId);
+      }
+      if (!cart?.id?.startsWith("gid://")) {
+        console.warn("⚠️ cartId is not a Shopify GID:", cart.id);
+      }
+
+      // 🧩 Build payload dynamically
+      const linesPayload = variant?.id
+        ? [{ id: lineId, merchandiseId: normalizeId(variant.id), quantity }]
+        : [{ id: lineId, quantity }];
+
+      console.log("🧾 Sending update payload:", {
+        cartId: cart.id,
+        linesPayload,
       });
 
-      // Make API request
+      // 🚀 Send update to Shopify
       const response = await shopify.request(UPDATE_CART_LINES, {
         cartId: cart.id,
-        lines: [
-          {
-            id: lineId,
-            merchandiseId: variant.id,
-            quantity,
-          },
-        ],
+        lines: linesPayload,
       });
 
-      // Update with server response
+      console.log("✅ Shopify response:", response);
+
+      // 🧩 Handle userErrors
+      const userErrors = response?.cartLinesUpdate?.userErrors;
+      if (userErrors?.length) {
+        console.error("❌ Shopify userErrors:", userErrors);
+        const currentCart = await fetchCart(cart.id);
+        setCart(currentCart);
+        return;
+      }
+
+      // Update cart state
       if (response?.cartLinesUpdate?.cart) {
-        setCart(response.cartLinesUpdate.cart);
+        // ALWAYS set cart from server
+        const updatedCart = response.cartLinesUpdate.cart;
+        setCart(updatedCart);
+
+        //check for stock
+        // Find affected line
+        const updatedLine = updatedCart.lines.edges.find(
+          (line) => line.node.id === lineId
+        );
+
+        // Show toast if requested quantity exceeds available stock
+        if (updatedLine && updatedLine.node.quantity < quantity) {
+          toast.error(
+            `Only ${updatedLine.node.quantity} of this item available`,
+            { description: "Cannot add more than available stock." }
+          );
+        }
+      } else {
+        // fallback to fetching cart if mutation fails
+        const refreshedCart = await fetchCart(cart.id);
+        setCart(refreshedCart);
       }
     } catch (err) {
-      console.error("Cart line update error:", err);
-
-      // Revert optimistic update on error
+      console.error("🔥 Cart line update error:", err);
       const currentCart = await fetchCart(cart.id);
       setCart(currentCart);
     } finally {

@@ -33,13 +33,24 @@ export default function ProductView({ product }) {
   async function handleAdd() {
     if (!selectedVariant) return;
 
+    const availableStock = selectedVariant.quantityAvailable || 0;
+
+    if (quantity > availableStock) {
+      // Show error if user tries to add more than available
+      toast.error(
+        `Cannot add ${quantity} × ${selectedVariant.title} ${product.title} to cart. Only ${availableStock} available.`,
+        { description: "Stock limit reached" }
+      );
+      return;
+    }
+
     try {
       await addToCart(selectedVariant.id, quantity);
 
       const displayTitle =
-        selectedVariant.title === "Default Title"
-          ? product.title
-          : selectedVariant.title;
+        selectedVariant.title && selectedVariant.title !== "Default Title"
+          ? `${selectedVariant.title} (${product.title})`
+          : product.title;
 
       toast.success(`${quantity} × ${displayTitle} added to cart!`);
     } catch (error) {

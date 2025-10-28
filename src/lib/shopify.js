@@ -322,6 +322,75 @@ export const UPDATE_CART_LINE = gql`
   }
 `;
 
+// ----------------------
+// Query to get blog articles
+// ----------------------
+export const GET_BLOG_ARTICLES = gql`
+  query getBlogArticles($handle: String!) {
+    blog(handle: $handle) {
+      title
+      articles(first: 10, sortKey: PUBLISHED_AT, reverse: true) {
+        edges {
+          node {
+            id
+            title
+            handle
+            excerpt
+            content
+            publishedAt
+            image {
+              url
+              altText
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function fetchBlogArticleByHandle(handle) {
+  const query = gql`
+    query ArticleByHandle($handle: String!) {
+      blog(handle: "news") {
+        articleByHandle(handle: $handle) {
+          id
+          title
+          contentHtml
+          excerpt
+          publishedAt
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const data = await shopify.request(query, { handle });
+    return data.blog?.articleByHandle || null;
+  } catch (error) {
+    console.error("Error fetching blog article by handle:", error);
+    return null;
+  }
+}
+/**
+ * Fetch all blog posts from a given blog handle
+ * @param {string} handle - The handle of the blog (e.g., "news", "blog", "stories")
+ */
+export async function fetchBlogArticles(handle = "news") {
+  try {
+    const data = await shopify.request(GET_BLOG_ARTICLES, { handle });
+    const articles = data.blog?.articles?.edges?.map((edge) => edge.node) || [];
+    return articles;
+  } catch (error) {
+    console.error("Error fetching blog articles:", error);
+    return [];
+  }
+}
+
 export async function updateCartLine(cartId, lineId, quantity) {
   const data = await shopify.request(UPDATE_CART_LINE, {
     cartId,
