@@ -2,54 +2,48 @@
 
 import { useState } from "react";
 import { Plus, Minus, Search, ArrowDown } from "lucide-react";
-import ViewAllButton from "./Buttons/ViewAllButton";
-
-const faqs = [
-  {
-    question: "What is Grumpy Grampa all about?",
-    answer:
-      "Grumpy Grampa is an e-commerce store that celebrates the quirks, wisdom, and humor of grandparents. We offer thoughtfully designed products that are practical, nostalgic, and just a little bit ornery—just like Grampa himself.",
-  },
-  {
-    question: "Who are your products for?",
-    answer:
-      "Our products are designed for grandparents and anyone who appreciates a touch of old-school humor and classic charm.",
-  },
-  {
-    question: "Do you offer gift wrapping or personalized messages?",
-    answer:
-      "Yes! We offer gift wrapping and custom messages during checkout for that perfect personal touch.",
-  },
-  {
-    question: "How do I know what size to get for apparel?",
-    answer:
-      "Each apparel product includes a detailed size chart to help you choose the perfect fit.",
-  },
-  {
-    question: "Can I return or exchange an item?",
-    answer:
-      "Of course. If you’re not completely satisfied, you can return or exchange your purchase within 30 days.",
-  },
-];
-
-const categories = [
-  "Product",
-  "Shipping",
-  "Payment",
-  "Return Product",
-  "Cancel Product",
-  "Add To Cart",
-  "Checkout",
-  "Reviews",
-];
+import faqData from "../lib/faqData"; // adjust path if needed
 
 export default function FAQ() {
+  const categories = [
+    "All",
+    "Product",
+    "Shipping",
+    "Payment",
+    "Return Product",
+    "Cancel Product",
+    "Add To Cart",
+    "Checkout",
+    "Reviews",
+  ];
+
+  const [activeCategory, setActiveCategory] = useState("All");
   const [openIndex, setOpenIndex] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  // Combine all categories for "All"
+  const allFaqs = Object.values(faqData).flat();
+
+  // If searching, always search globally
+  const currentFaqs =
+    searchTerm.trim() !== ""
+      ? allFaqs
+      : activeCategory === "All"
+      ? allFaqs
+      : faqData[activeCategory] || [];
+
+  // Filter by search term globally
+  const filteredFaqs = currentFaqs.filter((faq) =>
+    faq.question.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Limit to 5 unless showAll is true
+  const displayedFaqs = showAll ? filteredFaqs : filteredFaqs.slice(0, 5);
 
   return (
     <section className="w-full max-w-6xl mx-auto py-16 mb-5 text-center">
@@ -79,70 +73,84 @@ export default function FAQ() {
         {categories.map((cat, idx) => (
           <button
             key={idx}
-            className="px-4 py-1 rounded-full font-semibold text-md border border-gray-300 hover:bg-gray-200 transition"
+            onClick={() => {
+              setActiveCategory(cat);
+              setOpenIndex(null);
+              setShowAll(false);
+              setSearchTerm("");
+            }}
+            className={`px-4 py-1 rounded-full font-semibold text-md border border-gray-300 transition ${
+              activeCategory === cat
+                ? "bg-black text-white border-black"
+                : "hover:bg-gray-200"
+            }`}
           >
             {cat}
           </button>
         ))}
       </div>
 
+      {/* FAQ Collapsibles */}
       <div className="mt-10 space-y-4 text-left">
-        {faqs
-          .filter((faq) =>
-            faq.question.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-          .map((faq, index) => {
-            const isOpen = openIndex === index;
-
-            return (
-              <div
-                key={index}
-                className={`rounded-2xl p-6 transition-all duration-200 ${
-                  isOpen
-                    ? "bg-neutral-200"
-                    : "bg-neutral-200/70 hover:bg-neutral-200"
-                }`}
+        {displayedFaqs.map((faq, index) => {
+          const isOpen = openIndex === index;
+          return (
+            <div
+              key={index}
+              className={`rounded-2xl p-6 transition-all duration-200 ${
+                isOpen
+                  ? "bg-neutral-200"
+                  : "bg-neutral-200/70 hover:bg-neutral-200"
+              }`}
+            >
+              <button
+                className="w-full flex py-2 px-2 justify-between items-center text-left"
+                onClick={() => toggleFAQ(index)}
               >
-                <button
-                  className="w-full flex py-2 px-2 justify-between items-center text-left"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <span className="text-xl font-semibold tracking-wide text-neutral-950">
-                    {faq.question}
-                  </span>
+                <span className="text-xl font-semibold tracking-wide text-neutral-950">
+                  {faq.question}
+                </span>
 
-                  {/* Rotate the icon with Tailwind */}
-                  <span
-                    className={`transform transition-transform duration-300 ${
-                      isOpen ? "rotate-45" : "rotate-0"
-                    }`}
-                  >
-                    {isOpen ? (
-                      <Minus className="w-5 h-5 text-neutral-950" />
-                    ) : (
-                      <Plus className="w-5 h-5 text-neutral-950" />
-                    )}
-                  </span>
-                </button>
-
-                {/* Slide-down answer */}
-                <div
-                  className={`overflow-hidden transition-all px-2 duration-300 ${
-                    isOpen ? "max-h-96 mt-3" : "max-h-0 mt-0"
+                <span
+                  className={`transform transition-transform duration-300 ${
+                    isOpen ? "rotate-45" : "rotate-0"
                   }`}
                 >
-                  <p className="text-neutral-950 text-lg leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+                  {isOpen ? (
+                    <Minus className="w-5 h-5 text-neutral-950" />
+                  ) : (
+                    <Plus className="w-5 h-5 text-neutral-950" />
+                  )}
+                </span>
+              </button>
 
-        <button className="mx-auto flex mt-15 items-center gap-2 text-neutral-950 border border-neutral-950 rounded-full px-6 py-2 text-md hover:bg-neutral-200 transition">
-          Show more
-          <ArrowDown />
-        </button>
+              <div
+                className={`overflow-hidden transition-all px-2 duration-300 ${
+                  isOpen ? "max-h-96 mt-3" : "max-h-0 mt-0"
+                }`}
+              >
+                <p className="text-neutral-950 text-lg leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Show More Button */}
+        {filteredFaqs.length > 5 && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="mx-auto flex mt-8 items-center gap-2 text-neutral-950 border border-neutral-950 rounded-full px-6 py-2 text-md hover:bg-neutral-200 transition"
+          >
+            {showAll ? "Show less" : "Show more"}
+            <ArrowDown
+              className={`transition-transform ${
+                showAll ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </button>
+        )}
       </div>
     </section>
   );

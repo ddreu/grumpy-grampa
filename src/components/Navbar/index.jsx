@@ -11,7 +11,7 @@ import {
   Armchair,
 } from "lucide-react";
 
-import { navItems } from "@/data/NavItems";
+import { navItems } from "@/lib/NavItems";
 import CartIcon from "@/components/icons/Cart";
 import Link from "next/link";
 import SearchOverlay from "@/components/SearchOverlay";
