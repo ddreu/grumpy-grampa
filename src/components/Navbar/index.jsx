@@ -17,12 +17,15 @@ import Link from "next/link";
 import SearchOverlay from "@/components/SearchOverlay";
 import { useCart } from "@/context/CartContext";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
+import { Menu } from "lucide-react";
+import MobileMenu from "./MobileMenu";
 
 export function Navbar({ buttonLabel, buttonHref }) {
   const pathname = usePathname();
   const [shopOpen, setShopOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropdownGroups, setDropdownGroups] = useState([]);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const { cart } = useCart();
   const count =
@@ -68,7 +71,7 @@ export function Navbar({ buttonLabel, buttonHref }) {
 
   return (
     <header className="py-3 px-4">
-      <div className="container mx-auto z-20 flex items-center justify-between px-8 lg:py-4 lg:px-22">
+      <div className="container mx-auto z-20 flex items-center justify-between px-8 py-4 lg:py-4 lg:px-22">
         {/* Logo */}
         <div>
           <img
@@ -79,7 +82,8 @@ export function Navbar({ buttonLabel, buttonHref }) {
         </div>
 
         {/* Navigation */}
-        <nav className="bg-neutral-200 rounded-full px-5 py-3 shadow-sm">
+        {/* <nav className="bg-neutral-200 rounded-full px-5 py-3 shadow-sm"> */}
+        <nav className="hidden lg:block bg-neutral-200 rounded-full px-5 py-3 shadow-sm">
           <ul className="flex items-center gap-3 text-sm font-medium text-neutral-950">
             {navItems.map((item) => {
               const isActive = isNavItemActive(item, pathname);
@@ -158,13 +162,8 @@ export function Navbar({ buttonLabel, buttonHref }) {
             )}
           </Link>
 
-          {/* <Link
-            href="/Sign-in"
-            className="text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
-          >
-            Sign In
-          </Link> */}
-          {buttonLabel && buttonHref ? (
+          {/* sign in */}
+          {/* {buttonLabel && buttonHref ? (
             <Link
               href={buttonHref}
               className="text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
@@ -178,12 +177,45 @@ export function Navbar({ buttonLabel, buttonHref }) {
             >
               Sign In
             </Link>
+          )} */}
+          {/* Only visible on desktop */}
+          {/* Sign In — hidden on mobile, visible on md+ */}
+          {buttonLabel && buttonHref ? (
+            <Link
+              href={buttonHref}
+              className="hidden md:block text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
+            >
+              {buttonLabel}
+            </Link>
+          ) : (
+            <Link
+              href="/Sign-in"
+              className="hidden md:block text-neutral-950 text-[1.1rem] font-medium transition hover:text-neutral-900"
+            >
+              Sign In
+            </Link>
           )}
+
+          {/* Hamburger for mobile */}
+          <button
+            className="lg:hidden text-neutral-950"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu size={26} />
+          </button>
         </div>
       </div>
 
       {/* Search Overlay */}
       <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Mobile Menu Drawer */}
+      <MobileMenu
+        navItems={navItems}
+        dropdownGroups={dropdownGroups}
+        isOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
     </header>
   );
 }
