@@ -129,7 +129,9 @@ export function Product({ query: externalQuery = "" }) {
 
   return (
     <section
-      className={`max-w-7xl mx-auto ${isSearch ? "mt-4 py-6" : "mt-8 py-10"}`}
+      className={`max-w-7xl mx-5 sm:mx-auto ${
+        isSearch ? "mt-4 py-6" : "mt-8 py-10"
+      }`}
     >
       {/* Category/Search Header */}
       <div className="mb-12">
@@ -186,7 +188,7 @@ export function Product({ query: externalQuery = "" }) {
                 <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
                   {/* Discount badge */}
                   {discount > 0 && (
-                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-5">
+                    <span className="absolute top-3 left-3 bg-black text-white text-lg sm:text-xs font-semibold px-3 py-1 rounded-full z-5">
                       {discount}% OFF
                     </span>
                   )}
@@ -202,7 +204,7 @@ export function Product({ query: externalQuery = "" }) {
                   </div>
 
                   {/* Product Image */}
-                  <div className="aspect-[3/4] w-full overflow-hidden">
+                  <div className="aspect-[4/4] sm:aspect-[3/4] w-full overflow-hidden">
                     {image ? (
                       <img
                         src={image}
@@ -216,11 +218,11 @@ export function Product({ query: externalQuery = "" }) {
 
                   {/* Product Info */}
                   <div className="p-5">
-                    <div className="flex items-center text-sm text-yellow-500 mb-1">
+                    <div className="flex items-center text-lg sm:text-sm text-yellow-500 mb-1">
                       <Star size={14} fill="currentColor" />
                       <p className="ml-1 text-neutral-800">
                         5.0{" "}
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-gray-400 text-lg sm:text-xs">
                           (260 Reviews)
                         </span>
                       </p>
@@ -228,15 +230,15 @@ export function Product({ query: externalQuery = "" }) {
 
                     <div className="flex justify-between items-center text-neutral-950">
                       <div>
-                        <h3 className="font-semibold text-lg">
+                        <h3 className="font-semibold text-3xl sm:text-lg">
                           {product.title}
                         </h3>
                         <div>
-                          <span className="text-[17px] font-bold text-neutral-900">
+                          <span className="text-2xl sm:text-[17px] font-bold text-neutral-900">
                             ${currentPrice.toFixed(2)}
                           </span>{" "}
                           {discount > 0 && (
-                            <span className="text-[14px] text-gray-400 line-through">
+                            <span className="text-2xl sm:text-[14px] text-gray-400 line-through">
                               ${compareAtPrice.toFixed(2)}
                             </span>
                           )}
@@ -244,14 +246,15 @@ export function Product({ query: externalQuery = "" }) {
                       </div>
 
                       <button
-                        className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center"
+                        className="bg-black text-white rounded-full p-5 sm:p-3 hover:bg-gray-800 transition self-center"
                         onClick={(e) => {
-                          e.preventDefault(); // stop the <Link> from redirecting
-                          e.stopPropagation(); // prevent event bubbling
-                          handleAdd(product); // pass the product or variant to add
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAdd(product);
                         }}
                       >
-                        <CartIcon size={26} />
+                        {/* <CartIcon size={26} /> */}
+                        <CartIcon className="w-12 h-12 sm:w-8 sm:h-8 md:w-6 md:h-6" />
                       </button>
                     </div>
                   </div>

@@ -70,8 +70,8 @@ export function Navbar({ buttonLabel, buttonHref }) {
   }, []);
 
   return (
-    <header className="py-3 px-4">
-      <div className="container mx-auto z-20 flex items-center justify-between px-8 py-4 lg:py-4 lg:px-22">
+    <header className="px-0 sm:py-3 sm:px-4">
+      <div className="container mx-auto z-20 flex items-center justify-between px-4 sm:px-8 py-4 lg:py-4 lg:px-22">
         {/* Logo */}
         <div>
           <img

@@ -71,7 +71,7 @@ export default function TeamAndPartners() {
           These folks earned their seat at the table.
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 items-center justify-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 items-center justify-center gap-y-6 sm:gap-y-0">
           {partners.map((partner) => (
             <div key={partner.name} className="flex justify-center">
               <Image

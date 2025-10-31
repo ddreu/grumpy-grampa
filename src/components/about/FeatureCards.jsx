@@ -26,7 +26,7 @@ const features = [
 
 export default function FeatureCards() {
   return (
-    <div className="bg-neutral-200 items-center mx-auto rounded-4xl max-w-7xl p-6 flex flex-col sm:flex-row justify-between gap-6">
+    <div className="bg-neutral-200 items-center mx-5 md:mx-auto rounded-4xl max-w-7xl p-6 flex flex-col sm:flex-row justify-between gap-6">
       {features.map((feature, index) => (
         <div
           key={index}

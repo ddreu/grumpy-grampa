@@ -2,7 +2,7 @@
 
 import { X, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MobileMenu({
   navItems,
@@ -11,6 +11,18 @@ export default function MobileMenu({
   onClose,
 }) {
   const [shopOpen, setShopOpen] = useState(false);
+
+  // 🔒 Lock body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    // Clean up just in case
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [isOpen]);
 
   return (
     <div

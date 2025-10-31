@@ -12,26 +12,24 @@ import { User, Star, Gift, Home as HomeIcon, Box } from "lucide-react";
 
 export default function Home() {
   return (
-    <div>
-      {/* <main className="p-8 bg-neutral-50"> */}
-      <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
-        <Navbar />
-        <Hero />
-        <ProductGrid
-          title="Grumpy Grampa’s Treasure Trove"
-          subtitle="Curiously cranky finds, handpicked with old-school charm."
-          showFilter={true}
-          className="py-12"
-          viewAllUrl="/Shop"
-        />
-        <AboutSection showTitle={true} />
-        <CustomerReviews />
-        <BlogSection />
-        <FAQ />
-        <NewsletterSection />
-        {/* <Product /> */}
-      </main>
+    // <div className="bg-neutral-950">
+    <main className="pb-0 bg-neutral-50 overflow-hidden">
+      <Navbar />
+      <Hero />
+      <ProductGrid
+        title="Grumpy Grampa’s Treasure Trove"
+        subtitle="Curiously cranky finds, handpicked with old-school charm."
+        showFilter={true}
+        className="py-12"
+        viewAllUrl="/Shop"
+      />
+      <AboutSection showTitle={true} />
+      <CustomerReviews />
+      <BlogSection />
+      <FAQ />
+      <NewsletterSection className="mb-15" />
       <Footer />
-    </div>
+    </main>
+    // </div>
   );
 }

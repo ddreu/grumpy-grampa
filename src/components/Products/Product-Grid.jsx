@@ -164,10 +164,10 @@ export default function ProductGrid({
 
   return (
     <section className={`text-[#111] ${className}`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-5 sm:mx-auto">
         {/* Header */}
         <div className="mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-0">
             <div className="text-left">
               <h1
                 className={`text-4xl font-extrabold tracking-tight font-sans ${
@@ -178,13 +178,12 @@ export default function ProductGrid({
               </h1>
               {subtitle && <p className="text-gray-600 mt-0">{subtitle}</p>}
             </div>
-
-            <div className="mt-4 sm:mt-0">
+            <div className="mt-3 sm:mt-0 self-start sm:self-auto">
               <Link
                 href={viewAllUrl}
-                className="flex items-center gap-2 px-6 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
+                className="flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
               >
-                View All <ArrowRight size={20} />
+                View All <ArrowRight size={18} className="sm:w-5 sm:h-5" />
               </Link>
             </div>
           </div>

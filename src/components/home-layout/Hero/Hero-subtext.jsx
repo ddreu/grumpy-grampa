@@ -27,7 +27,7 @@ export default function HeroSubtext() {
   ];
 
   return (
-    <section className="bg-black text-white py-8 rounded-4xl max-w-7xl sm:max-w-2xl md:max-w-7xl lg:max-w-8xl mx-auto my-12 px-8">
+    <section className="bg-black text-white py-8 rounded-4xl max-w-2xl sm:max-w-4xl md:max-w-6xl lg:max-w-7xl mx-5 sm:mx-auto my-12 px-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-1 text-center">
         {features.map((item, idx) => (
           <div
