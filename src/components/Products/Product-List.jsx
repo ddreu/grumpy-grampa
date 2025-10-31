@@ -24,6 +24,8 @@ export function Product({ query: externalQuery = "" }) {
   const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
   const { addToCart } = useCart();
 
+  const [ratings, setRatings] = useState({});
+
   //  Normalize function to make search forgiving
   const normalize = (str) =>
     str
@@ -87,6 +89,26 @@ export function Product({ query: externalQuery = "" }) {
       });
     }
   }
+
+  useEffect(() => {
+    async function loadRatings() {
+      const newRatings = {};
+      for (const product of products) {
+        try {
+          const res = await fetch(
+            `/api/reviews/${product.id.split("/").pop()}`
+          );
+          const data = await res.json();
+          newRatings[product.id] = data;
+        } catch (e) {
+          newRatings[product.id] = { averageRating: 0, count: 0 };
+        }
+      }
+      setRatings(newRatings);
+    }
+
+    if (products.length) loadRatings();
+  }, [products]);
 
   useEffect(() => {
     async function getProducts() {
@@ -218,14 +240,50 @@ export function Product({ query: externalQuery = "" }) {
 
                   {/* Product Info */}
                   <div className="p-5">
-                    <div className="flex items-center text-lg sm:text-sm text-yellow-500 mb-1">
-                      <Star size={14} fill="currentColor" />
+                    <div className="flex items-center justify-between text-yellow-500 mb-1">
+                      {/* <Star size={14} fill="currentColor" />
                       <p className="ml-1 text-neutral-800">
-                        5.0{" "}
+                        {rating || "5.0"}{" "}
                         <span className="text-gray-400 text-lg sm:text-xs">
-                          (260 Reviews)
+                          ({reviewCount || 260} Reviews)
                         </span>
-                      </p>
+                      </p> */}
+
+                      {/* Left: Stars + Reviews */}
+                      <div className="flex items-center text-lg sm:text-sm">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={
+                              i <
+                              Math.round(
+                                ratings[product.id]?.averageRating || 0
+                              )
+                                ? "fill-yellow-500 text-yellow-500"
+                                : "text-yellow-500"
+                            }
+                          />
+                        ))}
+                        <p className="ml-1 text-neutral-800">
+                          {ratings[product.id]?.averageRating?.toFixed(1) ||
+                            "0.0"}{" "}
+                          <span className="text-gray-400 text-lg sm:text-xs">
+                            ({ratings[product.id]?.count || 0} Reviews)
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Right: Stocks */}
+                      <span className="text-gray-500 text-sm">
+                        {product.variants[0]?.quantityAvailable === 0
+                          ? "Out of Stock"
+                          : `${product.variants[0]?.quantityAvailable} ${
+                              product.variants[0]?.quantityAvailable === 1
+                                ? "Stock"
+                                : "Stocks"
+                            }`}
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center text-neutral-950">

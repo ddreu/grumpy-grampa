@@ -1,52 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
 import PaginationButtons from "../../Buttons/PaginationsButton";
 import QuoteIcon from "@/components/icons/Quote";
 
-const reviews = [
-  {
-    id: 1,
-    name: "Charlie Gouse",
-    role: "HAPPY G-POP",
-    quote:
-      "I've worn the same old cardigan for years, but Grumpy Grampa's knitwear is next-level. Comfortable enough for my afternoon nap, stylish enough for Sunday lunch. Even my teenage grandsons said, 'Nice fit, Gramps!'",
-    rating: 5,
-    avatar: "/avatars/avatar-1.png",
-  },
-  {
-    id: 2,
-    name: "Allison Kanter",
-    role: "HAPPY G-MA",
-    quote:
-      "I'm not one for complicated outfits, but these shirts and trousers are easy to wear, easy to wash, and make me look like I’ve still got it! My bridge club keeps asking where I shop.",
-    rating: 5,
-    avatar: "/avatars/avatar-2.png",
-  },
-  {
-    id: 3,
-    name: "Zaire Dias",
-    role: "HAPPY G-DAD",
-    quote:
-      "I bought a Grumpy Grampa jacket for a family reunion, and my daughter said I looked 'sharp.' The fit is perfect, the fabric is soft, and I feel confident wearing it anywhere — from the park to the pub.",
-    rating: 5,
-    avatar: "/avatars/avatar-3.png",
-  },
-];
-
 export default function CustomerReviews() {
-  const [current, setCurrent] = useState(0);
-  const itemsPerPage = 3; // reviews per page
+  const [reviews, setReviews] = useState([]);
+  const [startIndex, setStartIndex] = useState(0);
+  const itemsPerPage = 3;
 
-  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+  const totalScrollable = Math.max(reviews.length - itemsPerPage, 0);
+  const progress =
+    totalScrollable > 0 ? (startIndex / totalScrollable) * 100 : 0;
 
-  const next = () => setCurrent((prev) => (prev + 1) % totalPages);
-  const prev = () =>
-    setCurrent((prev) => (prev === 0 ? totalPages - 1 : prev - 1));
+  useEffect(() => {
+    async function loadReviews() {
+      try {
+        const res = await fetch("/api/testimonials");
+        const data = await res.json();
+        const validReviews = data.reviews.filter(
+          (r) => r.published && r.body && (r.reviewer?.name || r.title)
+        );
+        setReviews(validReviews);
+      } catch (err) {
+        console.error("Failed to load testimonials:", err);
+      }
+    }
+    loadReviews();
+  }, []);
 
-  const progress = Math.min(100, ((current + 1) / totalPages) * 100);
+  const handleNext = () =>
+    setStartIndex((prev) =>
+      Math.min(prev + itemsPerPage, reviews.length - itemsPerPage)
+    );
+  const handlePrevious = () =>
+    setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
+
+  const handleDragChange = (newProgress) => {
+    const newStart = Math.round((newProgress / 100) * totalScrollable);
+    setStartIndex(newStart);
+  };
 
   return (
     <section className="w-full bg-neutral-50 py-16 px-6 md:px-16">
@@ -62,65 +57,76 @@ export default function CustomerReviews() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 border border-neutral-950 text-neutral-950 rounded-full px-6 py-2 text-sm font-medium hover:bg-neutral-950 hover:text-white transition">
+        <button className="flex items-center cursor-pointer gap-2 border border-neutral-950 text-neutral-950 rounded-full px-6 py-2 text-sm font-medium hover:bg-neutral-950 hover:text-white transition">
           View All
           <ArrowRight size={20} />
         </button>
       </div>
 
-      {/* Reviews */}
-      <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 mt-10">
-        {reviews
-          .slice(current * itemsPerPage, current * itemsPerPage + itemsPerPage)
-          .map((r) => (
+      {/* Reviews Carousel */}
+      <div className="overflow-hidden max-w-7xl mx-auto mt-10">
+        <div
+          className="flex transition-transform duration-500 ease-in-out gap-6"
+          style={{
+            transform: `translateX(-${(startIndex / reviews.length) * 100}%)`,
+          }}
+        >
+          {reviews.map((r) => (
             <div
               key={r.id}
-              className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 text-left flex flex-col justify-between h-full"
+              className="flex-shrink-0 w-full md:w-1/3 bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 flex flex-col justify-between"
             >
               <div>
-                {/* Gradient quote icon */}
                 <QuoteIcon size={28} className="mb-4" />
-
                 <div className="flex items-center gap-3 mb-3">
                   <Image
-                    src={r.avatar}
-                    alt={r.name}
+                    src={r.reviewer?.picture_url || "/avatars/avatar-1.png"}
+                    alt={r.reviewer?.name || "Reviewer"}
                     width={40}
                     height={40}
                     className="rounded-full object-cover"
                   />
                   <div>
                     <h3 className="font-semibold text-neutral-900 text-lg">
-                      {r.name}
+                      {r.reviewer?.name || "Anonymous"}
                     </h3>
-                    <p className="text-sm text-neutral-500">{r.role}</p>
+                    <p className="text-sm text-neutral-500">
+                      {r.product?.title || r.title || "No title"}
+                    </p>
                   </div>
                 </div>
-
                 <p className="text-md text-neutral-700 mb-4 leading-relaxed">
-                  “{r.quote}”
+                  “{r.body}”
                 </p>
               </div>
-
-              {/* Stars always at the bottom */}
               <div className="flex items-center gap-1 mt-4">
-                {Array.from({ length: r.rating }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
                     size={16}
-                    className="fill-yellow-500 text-yellow-500"
+                    className={
+                      i < (r.rating || 0)
+                        ? "fill-yellow-500 text-yellow-500"
+                        : "text-yellow-500/30"
+                    }
                   />
                 ))}
                 <span className="text-sm text-neutral-700 font-medium ml-1">
-                  {r.rating.toFixed(1)}
+                  {r.rating?.toFixed(1) || "0.0"}
                 </span>
               </div>
             </div>
           ))}
+        </div>
       </div>
 
-      {/* Pagination Buttons with progress */}
-      <PaginationButtons progress={progress} onPrevious={prev} onNext={next} />
+      {/* Pagination Buttons */}
+      <PaginationButtons
+        progress={progress}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onDragChange={handleDragChange}
+      />
     </section>
   );
 }

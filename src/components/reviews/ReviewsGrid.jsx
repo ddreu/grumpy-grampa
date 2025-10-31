@@ -1,51 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowDown, Star } from "lucide-react";
 import QuoteIcon from "@/components/icons/Quote";
 
-const reviews = [
-  {
-    id: 1,
-    name: "Charlie Gouse",
-    role: "HAPPY G-POP",
-    quote:
-      "I've worn the same old cardigan for years, but Grumpy Grampa's knitwear is next-level. Comfortable enough for my afternoon nap, stylish enough for Sunday lunch. Even my teenage grandsons said, 'Nice fit, Gramps!'",
-    rating: 5,
-    avatar: "/avatars/avatar-1.png",
-  },
-  {
-    id: 2,
-    name: "Allison Kanter",
-    role: "HAPPY G-MA",
-    quote:
-      "I'm not one for complicated outfits, but these shirts and trousers are easy to wear, easy to wash, and make me look like I’ve still got it! My bridge club keeps asking where I shop.",
-    rating: 5,
-    avatar: "/avatars/avatar-2.png",
-  },
-  {
-    id: 3,
-    name: "Zaire Dias",
-    role: "HAPPY G-DAD",
-    quote:
-      "I bought a Grumpy Grampa jacket for a family reunion, and my daughter said I looked 'sharp.' The fit is perfect, the fabric is soft, and I feel confident wearing it anywhere — from the park to the pub.",
-    rating: 5,
-    avatar: "/avatars/avatar-3.png",
-  },
-];
-
 export default function ReviewsGrid() {
-  const [current, setCurrent] = useState(0);
-  const itemsPerPage = 3; // reviews per page
+  const [reviews, setReviews] = useState([]);
+  const [showAll, setShowAll] = useState(false);
+  const maxInitial = 6;
 
-  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+  useEffect(() => {
+    async function loadReviews() {
+      try {
+        const res = await fetch("/api/testimonials");
+        const data = await res.json();
+        const valid = data.reviews.filter(
+          (r) => r.published && r.body && r.reviewer?.name
+        );
+        setReviews(valid);
+      } catch (err) {
+        console.error("Failed to load testimonials:", err);
+      }
+    }
 
-  const next = () => setCurrent((prev) => (prev + 1) % totalPages);
-  const prev = () =>
-    setCurrent((prev) => (prev === 0 ? totalPages - 1 : prev - 1));
+    loadReviews();
+  }, []);
 
-  const progress = Math.min(100, ((current + 1) / totalPages) * 100);
+  // Determine which reviews to display
+  const displayedReviews = showAll ? reviews : reviews.slice(0, maxInitial);
 
   return (
     <section className="w-full bg-neutral-50 py-16 px-6 md:px-16">
@@ -64,58 +47,77 @@ export default function ReviewsGrid() {
 
       {/* Reviews */}
       <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 mt-10">
-        {reviews
-          .slice(current * itemsPerPage, current * itemsPerPage + itemsPerPage)
-          .map((r) => (
-            <div
-              key={r.id}
-              className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 text-left flex flex-col justify-between h-full"
-            >
-              <div>
-                {/* Gradient quote icon */}
-                <QuoteIcon size={28} className="mb-4" />
+        {displayedReviews.map((r) => (
+          <div
+            key={r.id}
+            className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 text-left flex flex-col justify-between h-full"
+          >
+            <div>
+              <QuoteIcon size={28} className="mb-4" />
 
-                <div className="flex items-center gap-3 mb-3">
-                  <Image
-                    src={r.avatar}
-                    alt={r.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-neutral-900 text-lg">
-                      {r.name}
-                    </h3>
-                    <p className="text-sm text-neutral-500">{r.role}</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <Image
+                  src={r.reviewer.picture_url || "/avatars/avatar-1.png"}
+                  alt={r.reviewer.name}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="font-semibold text-neutral-900 text-lg">
+                    {r.reviewer.name}
+                  </h3>
+                  {/* <p className="text-sm text-neutral-500">
+                    {r.reviewer.email || "Verified Buyer"}
+                  </p> */}
+                  <p className="text-sm text-neutral-500">
+                    {r.product?.title || r.title || "No title"}
+                  </p>
                 </div>
-
-                <p className="text-md text-neutral-700 mb-4 leading-relaxed">
-                  “{r.quote}”
-                </p>
               </div>
 
-              {/* Stars always at the bottom */}
-              <div className="flex items-center gap-1 mt-4">
-                {Array.from({ length: r.rating }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    className="fill-yellow-500 text-yellow-500"
-                  />
-                ))}
-                <span className="text-sm text-neutral-700 font-medium ml-1">
-                  {r.rating.toFixed(1)}
-                </span>
-              </div>
+              <p className="text-md text-neutral-700 mb-4 leading-relaxed">
+                “{r.body}”
+              </p>
             </div>
-          ))}
+
+            <div className="flex items-center gap-1 mt-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={16}
+                  className={
+                    i < (r.rating || 0)
+                      ? "fill-yellow-500 text-yellow-500"
+                      : "text-yellow-500/30"
+                  }
+                />
+              ))}
+              <span className="text-sm text-neutral-700 font-medium ml-1">
+                {r.rating?.toFixed(1) || "0.0"}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
-      <button className="mx-auto flex mt-15 items-center gap-2 text-neutral-950 border border-neutral-950 rounded-full px-6 py-2 text-md hover:bg-neutral-200 transition">
-        Show more
-        <ArrowDown />
-      </button>
+
+      {/* Show More / Less button */}
+      {reviews.length > maxInitial && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="flex items-center gap-2 px-8 py-3 border border-neutral-950 text-neutral-950 rounded-full hover:bg-neutral-950 hover:text-white transition-colors duration-200 text-md cursor-pointer font-medium"
+          >
+            {showAll ? "Show Less" : "Show More"}
+            <ArrowDown
+              size={16}
+              className={`transition-transform duration-300 ${
+                showAll ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+      )}
     </section>
   );
 }

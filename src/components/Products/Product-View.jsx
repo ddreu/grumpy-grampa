@@ -24,11 +24,32 @@ export default function ProductView({ product }) {
   const [zoom, setZoom] = useState({ active: false, x: 0, y: 0 });
 
   const { addToCart } = useCart();
+
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
   // async function handleAdd() {
   //   if (!selectedVariant) return;
   //   await addToCart(selectedVariant.id, quantity);
   //   alert(`${quantity} x ${selectedVariant.title} Added to cart!`);
   // }
+
+  useEffect(() => {
+    async function loadReviews() {
+      try {
+        const productId = product.id.split("/").pop();
+        const res = await fetch(`/api/reviews/${productId}`);
+        const data = await res.json();
+        setReviews(data.reviews || []);
+        setAverageRating(data.averageRating || 0);
+        setReviewCount(data.count || 0);
+      } catch (err) {
+        console.error("Error loading reviews:", err);
+      }
+    }
+
+    loadReviews();
+  }, [product.id]);
 
   async function handleAdd() {
     if (!selectedVariant) return;
@@ -216,18 +237,32 @@ export default function ProductView({ product }) {
           </div>
 
           {/* Stock & Rating Info */}
-          <p className="text-sm text-neutral-950 mb-4 flex items-center gap-2">
+          <div className="text-sm text-neutral-950 mb-4 flex items-center gap-2">
             {/* 5 stars */}
-            <span className="flex items-center gap-0.5 text-yellow-500">
+            {/* <span className="flex items-center gap-0.5 text-yellow-500">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={14} fill="currentColor" />
               ))}
             </span>
-            5.0 (260 Reviews) •{" "}
+            5.0 (260 Reviews) •{" "} */}
+            <span className="flex items-center gap-1 text-yellow-500">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  fill={i < Math.round(averageRating) ? "currentColor" : "none"}
+                />
+              ))}
+            </span>
+
+            <span className="text-neutral-700 text-sm">
+              {averageRating.toFixed(1)} ({reviewCount} Reviews)
+            </span>
+
             {product.variants[0]?.availableForSale
               ? `In stock (${product.variants[0]?.quantityAvailable} available)`
               : "Out of stock"}
-          </p>
+          </div>
 
           {/* Quick actions */}
           <div className="flex items-center gap-3 text-sm mb-6">

@@ -49,7 +49,7 @@ export default function ProductGrid({
   const [groupTabs, setGroupTabs] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const { addToCart } = useCart();
-
+  const [ratings, setRatings] = useState({});
   const [groupedCollections, setGroupedCollections] = useState({});
   const displayTabs =
     tabs.length > 0 ? tabs.map((t) => ({ name: t, icon: null })) : groupTabs;
@@ -144,6 +144,27 @@ export default function ProductGrid({
     }
     loadProducts();
   }, []);
+
+  // judge me
+  useEffect(() => {
+    async function loadRatings() {
+      const newRatings = {};
+      for (const product of products) {
+        try {
+          const res = await fetch(
+            `/api/reviews/${product.id.split("/").pop()}`
+          );
+          const data = await res.json();
+          newRatings[product.id] = data;
+        } catch (e) {
+          newRatings[product.id] = { averageRating: 0, count: 0 };
+        }
+      }
+      setRatings(newRatings);
+    }
+
+    if (products.length) loadRatings();
+  }, [products]);
 
   if (loading) {
     return (
@@ -305,14 +326,42 @@ export default function ProductGrid({
 
                       <div className="p-4">
                         <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-                          <span className="flex items-center gap-1">
+                          {/* <span className="flex items-center gap-1">
                             <Star
                               size={16}
                               className="fill-yellow-500 text-yellow-500"
                             />
                             5.0 (260 Reviews)
+                          </span> */}
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={16}
+                                className={
+                                  i <
+                                  Math.round(
+                                    ratings[product.id]?.averageRating || 0
+                                  )
+                                    ? "fill-yellow-500 text-yellow-500"
+                                    : "text-yellow-500"
+                                }
+                              />
+                            ))}
+                            <span className="text-sm text-gray-600">
+                              ({ratings[product.id]?.count || 0} Reviews)
+                            </span>
+                          </div>
+
+                          <span>
+                            {product.variants[0]?.quantityAvailable === 0
+                              ? "Out of Stock"
+                              : `${product.variants[0]?.quantityAvailable} ${
+                                  product.variants[0]?.quantityAvailable === 1
+                                    ? "Stock"
+                                    : "Stocks"
+                                }`}
                           </span>
-                          <span>1.2K Stocks</span>
                         </div>
 
                         <div className="flex justify-between items-center">

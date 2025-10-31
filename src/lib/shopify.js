@@ -79,6 +79,8 @@ export const GET_PRODUCTS = gql`
                   amount
                   currencyCode
                 }
+                availableForSale
+                quantityAvailable
               }
             }
           }
