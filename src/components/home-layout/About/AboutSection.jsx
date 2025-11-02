@@ -26,18 +26,21 @@ export default function AboutSection({ showTitle }) {
       )}
 
       {/* ===== Main Row ===== */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between md:px-0 px-0">
+      <div className="max-w-7xl mx-5 sm:mx-auto flex flex-col md:flex-row items-center justify-between sm:px-0 px-3">
         {/* ===== Left Image Section (full width left side) ===== */}
-        <div className="flex-[1.6] flex justify-start relative w-full">
-          <div className="w-full flex justify-start">
+        {/* <div className="flex-[1.6] flex justify-start relative w-full mb-5 sm:mb-0">
+          <div className="w-full flex justify-start"> */}
+        {/* ===== Left Image Section (full width left side) ===== */}
+        <div className="flex-[1.6] flex justify-center md:justify-start relative w-full mb-5 sm:mb-0">
+          <div className="w-full flex justify-center md:justify-start">
             <div className="p-2 rounded-full border-4 border-dashed border-neutral-950 flex items-center justify-center">
-              <div className="w-[28rem] h-[28rem] md:w-[36rem] md:h-[36rem] bg-black rounded-full flex items-center justify-center relative overflow-visible">
+              <div className="w-[18rem] h-[18rem] sm:w-[28rem] sm:h-[28rem] md:w-[36rem] md:h-[36rem] bg-black rounded-full flex items-center justify-center relative overflow-visible">
                 <Image
                   src="/grumpy.png"
                   alt="Grumpy Grandpa"
                   width={800}
                   height={800}
-                  className="object-cover rounded-full -translate-y-7"
+                  className="object-cover rounded-full -translate-y-3 sm:-translate-y-7"
                 />
               </div>
             </div>

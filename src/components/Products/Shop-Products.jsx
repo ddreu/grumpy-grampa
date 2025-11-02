@@ -27,13 +27,14 @@ import { toast } from "sonner";
 
 import { useCart } from "@/context/CartContext";
 
-export default function ProductGrid({
+export default function ShopProducts({
   title = "Our Products",
   subtitle = "",
-  tabs = [], // array of { name: string, icon: ReactComponent }
+  tabs = [],
   showFilter = true,
   className = "",
   viewAllUrl = "#",
+  filters: externalFilters = {}, // 👈 added
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +115,11 @@ export default function ProductGrid({
       });
     }
   }
-
+  useEffect(() => {
+    if (externalFilters) {
+      setFilters((prev) => ({ ...prev, ...externalFilters }));
+    }
+  }, [externalFilters]);
   useEffect(() => {
     async function loadGroups() {
       try {

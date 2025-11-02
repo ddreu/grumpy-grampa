@@ -1,14 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
 import ShopFilterDropdown from "../Buttons/ShopFilterDropdown";
 
-export default function SearchBar({ query, onQueryChange }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
+export default function SearchBar({ query, onQueryChange, onFiltersApply }) {
+  // props from Shop
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [groupTabs, setGroupTabs] = useState([]);
   const [groupedCollections, setGroupedCollections] = useState({});
@@ -16,33 +13,20 @@ export default function SearchBar({ query, onQueryChange }) {
 
   useEffect(() => {
     async function loadGroups() {
-      const groups = await fetchCollectionsByGroup();
-      setGroupedCollections(groups);
-      const tabsArray = Object.keys(groups).map((groupName) => ({
-        name: groupName,
-        icon: null,
-      }));
-      setGroupTabs(tabsArray);
+      try {
+        const groups = await fetchCollectionsByGroup();
+        setGroupedCollections(groups);
+        const tabsArray = Object.keys(groups).map((groupName) => ({
+          name: groupName,
+          icon: null,
+        }));
+        setGroupTabs(tabsArray);
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
     }
     loadGroups();
   }, []);
-
-  const handleFiltersApply = (filters) => {
-    const params = new URLSearchParams(searchParams);
-
-    // Add/replace filter params
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== "All") {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-    });
-
-    // Redirect with updated params (stays on same page)
-    router.push(`?${params.toString()}`, { scroll: false });
-    setIsFilterOpen(false);
-  };
 
   return (
     <section className="relative mt-6 mb-8 max-w-7xl mx-5 sm:mx-auto bg-black text-white rounded-4xl sm:rounded-3xl flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -60,6 +44,7 @@ export default function SearchBar({ query, onQueryChange }) {
         Bold, cozy, and just the right amount of cranky.
       </p>
 
+      {/* Controlled input */}
       <div className="relative z-10 flex items-center bg-white text-gray-700 rounded-full shadow-lg w-full max-w-lg px-5 py-3">
         <Search className="w-5 h-5 text-gray-400 mr-3" />
         <input
@@ -87,25 +72,10 @@ export default function SearchBar({ query, onQueryChange }) {
                 groupedCollections={groupedCollections}
                 selectedGroup={selectedGroup}
                 onGroupChange={(group) => setSelectedGroup(group)}
-                onFiltersApply={handleFiltersApply}
-                onCollectionChange={(collection) => {
-                  const params = new URLSearchParams(searchParams); // keep existing params
-
-                  if (selectedGroup) params.set("title", selectedGroup);
-                  params.set(
-                    "tabs",
-                    groupedCollections[selectedGroup]
-                      ?.map((c) => c.title)
-                      .join(",") || ""
-                  );
-                  if (collection && collection !== "All") {
-                    params.set("collection", collection);
-                  } else {
-                    params.delete("collection"); // remove if All
-                  }
-
-                  router.push(`?${params.toString()}`, { scroll: false }); // merge params
+                onFiltersApply={(filters) => {
                   setIsFilterOpen(false);
+                  // Pass filters upward to Shop page parent
+                  onFiltersApply?.(filters);
                 }}
               />
             </div>

@@ -1,11 +1,6 @@
 "use client";
 import { Check } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query"; // We'll make this tiny hook below
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { DialogTitle } from "@/components/ui/dialog";
-
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function FilterDropdown({
   open,
@@ -24,7 +19,6 @@ export default function FilterDropdown({
   const [minPrice, setMinPrice] = useState(""); // ✅ new
   const [maxPrice, setMaxPrice] = useState(""); // ✅ new
   const [selectedReview, setSelectedReview] = useState("All");
-  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const hasSelectedGroup =
     selectedGroup &&
@@ -64,11 +58,10 @@ export default function FilterDropdown({
     onClose?.();
   };
 
-  const FilterContent = (
+  return (
     <div
       ref={dropdownRef}
-      // className="w-64 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
-      className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+      className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
     >
       {/* If a group is selected → show collections */}
       {hasSelectedGroup ? (
@@ -209,20 +202,5 @@ export default function FilterDropdown({
         Apply
       </button>
     </div>
-  );
-
-  if (isDesktop) {
-    return <div>{FilterContent}</div>;
-  }
-
-  return (
-    <Drawer open={open} onOpenChange={onClose} direction="bottom">
-      <DrawerContent className="bg-white rounded-t-2xl p-4 max-h-[80vh]">
-        <VisuallyHidden>
-          <DialogTitle>Filter Options</DialogTitle>
-        </VisuallyHidden>
-        {FilterContent}
-      </DrawerContent>
-    </Drawer>
   );
 }

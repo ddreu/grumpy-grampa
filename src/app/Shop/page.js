@@ -4,15 +4,16 @@ import Footer from "@/components/Footer/Footer";
 import FAQ from "@/components/home-layout/Faq";
 import NewsletterSection from "@/components/home-layout/Newsletter";
 import { Navbar } from "@/components/Navbar";
-import ProductGrid from "@/components/Products/Product-Grid";
 import SearchBar from "@/components/Search/SearchBar";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
 import { Product } from "@/components/Products/Product-List";
+import ProductGrid from "@/components/Products/Product-Grid";
 
 export default function Shop() {
   const [groups, setGroups] = useState({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(""); // local search query
+  const [filters, setFilters] = useState({});
 
   useEffect(() => {
     async function loadGroups() {
@@ -42,11 +43,15 @@ export default function Shop() {
         <Navbar />
 
         {/* Pass down search state */}
-        <SearchBar query={query} onQueryChange={setQuery} />
+        <SearchBar
+          query={query}
+          onQueryChange={setQuery}
+          onFiltersApply={setFilters}
+        />
 
         {/* Swap between ProductGrid and Product */}
-        {query.trim() ? (
-          <Product query={query} />
+        {query.trim() || Object.keys(filters).length > 0 ? (
+          <Product query={query} filters={filters} />
         ) : (
           Object.entries(groups).map(([groupName, collections]) => (
             <ProductGrid

@@ -4,25 +4,33 @@ import { fetchProducts, fetchCollectionsByGroup } from "../../lib/shopify";
 import { ArrowDown, Star } from "lucide-react";
 import CartIcon from "../icons/Cart";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
 import { toast } from "sonner";
 
 import { useCart } from "@/context/CartContext";
 
-export function Product({ query: externalQuery = "" }) {
+export function Product({ query: externalQuery = "", filters = {} }) {
   const searchParams = useSearchParams();
-  const titleParam = searchParams.get("title") || "Products";
-  const tabsParam = searchParams.get("tabs");
   const queryParam = searchParams.get("query")?.toLowerCase() || "";
+
+  const titleParam = searchParams.get("title") || "Products";
+  const tabsParam = searchParams.get("tabs") || "";
   const [tabs, setTabs] = useState(tabsParam ? tabsParam.split(",") : []);
+  // const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
+
+  const [activeCollection, setActiveCollection] = useState("");
 
   const query = externalQuery ? externalQuery.toLowerCase() : queryParam;
+
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
-  const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
   const { addToCart } = useCart();
+
+  const [ratings, setRatings] = useState({});
+
+  const router = useRouter();
 
   //  Normalize function to make search forgiving
   const normalize = (str) =>
@@ -33,25 +41,63 @@ export function Product({ query: externalQuery = "" }) {
 
   const normalizedQuery = normalize(query);
 
+  // pull active filters directly from URL
+  const activeFilters = {
+    group: searchParams.get("group") || filters.group || null,
+    collection: searchParams.get("collection") || filters.collection || null,
+    review: searchParams.get("review") || filters.review || "All",
+    stockThreshold:
+      searchParams.get("stockThreshold") || filters.stockThreshold || null,
+    minPrice: searchParams.get("minPrice") || filters.minPrice || null,
+    maxPrice: searchParams.get("maxPrice") || filters.maxPrice || null,
+  };
+
+  const {
+    minPrice,
+    maxPrice,
+    review: selectedReview,
+    collection: category,
+    stockThreshold,
+  } = activeFilters;
+
   //  Filter products
   const filteredProducts = products.filter((product) => {
     const inCollection =
-      //  skip collection filtering during search
-      !normalizedQuery && activeCollection
-        ? product.collections?.some(
-            (collection) => collection.title === activeCollection
-          )
-        : true;
+      !category || category === "All"
+        ? true
+        : product.collections?.some(
+            (collection) =>
+              collection.title?.toLowerCase() === category?.toLowerCase()
+          ) ?? true;
 
     const matchesQuery = normalizedQuery
       ? normalize(product.title).includes(normalizedQuery) ||
-        // normalize(product.descriptionHtml || "").includes(normalizedQuery)
         normalize(
           product.description || product.descriptionHtml || ""
         ).includes(normalizedQuery)
       : true;
 
-    return inCollection && matchesQuery;
+    const currentPrice = parseFloat(product.variants[0]?.price?.amount || 0);
+    const withinPrice =
+      (!minPrice && !maxPrice) ||
+      (currentPrice >= (minPrice || 0) &&
+        currentPrice <= (maxPrice || Infinity));
+
+    const rating = ratings[product.id]?.averageRating || 0;
+    let matchesReview = true;
+    if (selectedReview && selectedReview !== "All") {
+      const [min, max] = selectedReview.includes("-")
+        ? selectedReview.split("-").map((n) => parseFloat(n))
+        : [parseFloat(selectedReview), 5.0];
+      matchesReview = rating >= min && rating <= max;
+    }
+
+    const quantityAvailable = product.variants[0]?.quantityAvailable || 0;
+    const meetsStock = !stockThreshold || quantityAvailable >= stockThreshold;
+
+    return (
+      inCollection && matchesQuery && withinPrice && matchesReview && meetsStock
+    );
   });
 
   const displayedProducts = showAll
@@ -89,6 +135,26 @@ export function Product({ query: externalQuery = "" }) {
   }
 
   useEffect(() => {
+    async function loadRatings() {
+      const newRatings = {};
+      for (const product of products) {
+        try {
+          const res = await fetch(
+            `/api/reviews/${product.id.split("/").pop()}`
+          );
+          const data = await res.json();
+          newRatings[product.id] = data;
+        } catch (e) {
+          newRatings[product.id] = { averageRating: 0, count: 0 };
+        }
+      }
+      setRatings(newRatings);
+    }
+
+    if (products.length) loadRatings();
+  }, [products]);
+
+  useEffect(() => {
     async function getProducts() {
       const items = await fetchProducts();
       setProducts(items);
@@ -99,17 +165,28 @@ export function Product({ query: externalQuery = "" }) {
   useEffect(() => {
     async function loadCollections() {
       if (!tabsParam) {
-        const groups = await fetchCollectionsByGroup(); // { Grandparents: [...], Theme: [...] }
+        const groups = await fetchCollectionsByGroup();
         const collections = groups[titleParam] || [];
         const collectionTitles = collections.map((c) => c.title);
         setTabs(collectionTitles);
-        setActiveCollection(collectionTitles[0] || ""); // default active
+        setActiveCollection(collectionTitles[0] || ""); // default first
       } else {
-        setActiveCollection(tabs[0]);
+        const paramTabs = tabsParam.split(",");
+        setTabs(paramTabs);
+        setActiveCollection(paramTabs[0] || "");
       }
     }
     loadCollections();
   }, [titleParam, tabsParam]);
+
+  useEffect(() => {
+    const collectionParam = searchParams.get("collection");
+    if (collectionParam) {
+      setActiveCollection(collectionParam);
+    } else if (tabs.length > 0) {
+      setActiveCollection(tabs[0]);
+    }
+  }, [searchParams, tabs]);
 
   if (products.length === 0)
     return (
@@ -129,7 +206,9 @@ export function Product({ query: externalQuery = "" }) {
 
   return (
     <section
-      className={`max-w-7xl mx-auto ${isSearch ? "mt-4 py-6" : "mt-8 py-10"}`}
+      className={`max-w-7xl mx-5 sm:mx-auto ${
+        isSearch ? "mt-4 py-6" : "mt-8 py-10"
+      }`}
     >
       {/* Category/Search Header */}
       <div className="mb-12">
@@ -144,9 +223,48 @@ export function Product({ query: externalQuery = "" }) {
         ) : (
           <div className="flex flex-wrap gap-3 mt-3">
             {tabs.map((collection) => (
+              // <button
+              //   key={collection}
+              //   onClick={() => {
+              //     setActiveCollection(collection);
+              //     const params = new URLSearchParams(searchParams);
+              //     params.set("tabs", tabs.join(",")); // keep all tabs in URL
+              //     params.set("collection", collection); // active collection filter
+              //     router.push(
+              //       `/Shop/${encodeURIComponent(
+              //         titleParam
+              //       )}?${params.toString()}`
+              //     );
+              //   }}
+              //   className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
+              //     activeCollection === collection
+              //       ? "bg-black text-white"
+              //       : "border border-neutral-950 text-neutral-900 hover:bg-gray-300"
+              //   }`}
+              // >
+              //   {collection}
+              // </button>
               <button
                 key={collection}
-                onClick={() => setActiveCollection(collection)}
+                onClick={() => {
+                  setActiveCollection(collection);
+
+                  const params = new URLSearchParams(searchParams);
+
+                  // Keep all other filters intact
+                  params.set("collection", collection);
+
+                  // Keep tabs for persistence
+                  params.set("tabs", tabs.join(","));
+
+                  // Update the URL
+                  router.push(
+                    `/Shop/${encodeURIComponent(
+                      titleParam
+                    )}?${params.toString()}`,
+                    { scroll: false }
+                  );
+                }}
                 className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
                   activeCollection === collection
                     ? "bg-black text-white"
@@ -186,7 +304,7 @@ export function Product({ query: externalQuery = "" }) {
                 <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
                   {/* Discount badge */}
                   {discount > 0 && (
-                    <span className="absolute top-3 left-3 bg-black text-white text-xs font-semibold px-3 py-1 rounded-full z-5">
+                    <span className="absolute top-3 left-3 bg-black text-white text-lg sm:text-xs font-semibold px-3 py-1 rounded-full z-5">
                       {discount}% OFF
                     </span>
                   )}
@@ -202,7 +320,7 @@ export function Product({ query: externalQuery = "" }) {
                   </div>
 
                   {/* Product Image */}
-                  <div className="aspect-[3/4] w-full overflow-hidden">
+                  <div className="aspect-[4/4] sm:aspect-[3/4] w-full overflow-hidden">
                     {image ? (
                       <img
                         src={image}
@@ -216,27 +334,63 @@ export function Product({ query: externalQuery = "" }) {
 
                   {/* Product Info */}
                   <div className="p-5">
-                    <div className="flex items-center text-sm text-yellow-500 mb-1">
-                      <Star size={14} fill="currentColor" />
+                    <div className="flex items-center justify-between text-yellow-500 mb-1">
+                      {/* <Star size={14} fill="currentColor" />
                       <p className="ml-1 text-neutral-800">
-                        5.0{" "}
-                        <span className="text-gray-400 text-xs">
-                          (260 Reviews)
+                        {rating || "5.0"}{" "}
+                        <span className="text-gray-400 text-lg sm:text-xs">
+                          ({reviewCount || 260} Reviews)
                         </span>
-                      </p>
+                      </p> */}
+
+                      {/* Left: Stars + Reviews */}
+                      <div className="flex items-center text-lg sm:text-sm">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={
+                              i <
+                              Math.round(
+                                ratings[product.id]?.averageRating || 0
+                              )
+                                ? "fill-yellow-500 text-yellow-500"
+                                : "text-yellow-500"
+                            }
+                          />
+                        ))}
+                        <p className="ml-1 text-neutral-800">
+                          {ratings[product.id]?.averageRating?.toFixed(1) ||
+                            "0.0"}{" "}
+                          <span className="text-gray-400 text-lg sm:text-xs">
+                            ({ratings[product.id]?.count || 0} Reviews)
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Right: Stocks */}
+                      <span className="text-gray-500 text-sm">
+                        {product.variants[0]?.quantityAvailable === 0
+                          ? "Out of Stock"
+                          : `${product.variants[0]?.quantityAvailable} ${
+                              product.variants[0]?.quantityAvailable === 1
+                                ? "Stock"
+                                : "Stocks"
+                            }`}
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center text-neutral-950">
                       <div>
-                        <h3 className="font-semibold text-lg">
+                        <h3 className="font-semibold text-3xl sm:text-lg">
                           {product.title}
                         </h3>
                         <div>
-                          <span className="text-[17px] font-bold text-neutral-900">
+                          <span className="text-2xl sm:text-[17px] font-bold text-neutral-900">
                             ${currentPrice.toFixed(2)}
                           </span>{" "}
                           {discount > 0 && (
-                            <span className="text-[14px] text-gray-400 line-through">
+                            <span className="text-2xl sm:text-[14px] text-gray-400 line-through">
                               ${compareAtPrice.toFixed(2)}
                             </span>
                           )}
@@ -244,14 +398,15 @@ export function Product({ query: externalQuery = "" }) {
                       </div>
 
                       <button
-                        className="bg-black text-white rounded-full p-3 hover:bg-gray-800 transition self-center"
+                        className="bg-black text-white rounded-full p-5 sm:p-3 hover:bg-gray-800 transition self-center"
                         onClick={(e) => {
-                          e.preventDefault(); // stop the <Link> from redirecting
-                          e.stopPropagation(); // prevent event bubbling
-                          handleAdd(product); // pass the product or variant to add
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAdd(product);
                         }}
                       >
-                        <CartIcon size={26} />
+                        {/* <CartIcon size={26} /> */}
+                        <CartIcon className="w-12 h-12 sm:w-8 sm:h-8 md:w-6 md:h-6" />
                       </button>
                     </div>
                   </div>

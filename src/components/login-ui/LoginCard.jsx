@@ -9,16 +9,16 @@ export default function LoginCard() {
 
   return (
     <section
-      className="relative max-w-7xl mx-auto bg-neutral-50 border border-gray-300 shadow-sm
+      className="relative max-w-7xl mx-5 md:mx-auto bg-neutral-50 border border-gray-300 shadow-sm
       text-white rounded-4xl overflow-hidden flex flex-col md:flex-row 
-      items-stretch justify-between px-0 md:px-0 pt-15 my-20"
+      items-stretch justify-between px-2 md:px-0 pt-15 my-20"
     >
       <div
         className="absolute inset-0 bg-[url('/login/lines-2.svg')] bg-cover bg-center opacity-20 pointer-events-none"
         aria-hidden="true"
       ></div>
 
-      <div className="relative z-10 flex items-end justify-center md:w-1/2">
+      <div className="relative z-10 hidden md:flex items-end justify-center md:w-1/2">
         <Image
           src="/login/login.png"
           alt="Grumpy Grampa"
@@ -38,7 +38,7 @@ export default function LoginCard() {
 
         <button
           onClick={handleLogin}
-          className="w-full bg-black cursor-pointer text-white py-3 rounded-2xl font-medium hover:bg-neutral-800 transition"
+          className="w-full mb-13 md:mb-0 bg-black cursor-pointer text-white py-3 rounded-2xl font-medium hover:bg-neutral-800 transition"
         >
           Continue to Login
         </button>

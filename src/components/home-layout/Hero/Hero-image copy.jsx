@@ -14,7 +14,6 @@ import "swiper/css/navigation";
 export default function HeroImage() {
   const [products, setProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   // Refs for manual navigation
   const prevRef = useRef(null);
@@ -45,13 +44,6 @@ export default function HeroImage() {
     let rotate = 0;
     let translateY = 0;
 
-    if (isMobile) {
-      // simpler motion for mobile
-      return `translateY(${Math.abs(offset) * 20}px) scale(${
-        offset === 0 ? 1 : 0.9
-      })`;
-    }
-
     // Visible slides
     if (Math.abs(offset) <= 2) {
       translateY = Math.abs(offset) * 40;
@@ -77,31 +69,29 @@ export default function HeroImage() {
   return (
     <div className="bg-neutral-50 pt-10 px-0 pb-32 relative w-full overflow-visible">
       {/*  Custom buttons without Swiper classes */}
-      {/* Left arrow */}
       <div
-        className="absolute left-4 md:left-60 top-1/2 z-10 -translate-y-1/2"
+        className="absolute left-60 top-1/2 z-10 -translate-y-1/2"
         style={{ transform: "rotate(-17deg)" }}
       >
         <button
           ref={prevRef}
-          className="bg-black text-white border-2 border-white rounded-full p-3 md:p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
+          className="bg-black text-white border-2 border-white rounded-full p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
           aria-label="Previous slide"
         >
-          <ArrowLeft size={isMobile ? 25 : 35} strokeWidth={2} />
+          <ArrowLeft size={35} strokeWidth={2} />
         </button>
       </div>
 
-      {/* Right arrow */}
       <div
-        className="absolute right-4 md:right-60 top-1/2 z-10 -translate-y-1/2"
+        className="absolute right-60 top-1/2 z-10 -translate-y-1/2"
         style={{ transform: "rotate(17deg)" }}
       >
         <button
           ref={nextRef}
-          className="bg-black text-white border-2 border-white rounded-full p-3 md:p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
+          className="bg-black text-white border-2 border-white rounded-full p-4 shadow-lg hover:scale-110 transition flex items-center justify-center"
           aria-label="Next slide"
         >
-          <ArrowRight size={isMobile ? 25 : 35} strokeWidth={2} />
+          <ArrowRight size={35} strokeWidth={2} />
         </button>
       </div>
 
@@ -116,25 +106,10 @@ export default function HeroImage() {
           swiper.params.navigation.prevEl = prevRef.current;
           swiper.params.navigation.nextEl = nextRef.current;
         }}
-        loop
-        centeredSlides
         spaceBetween={8}
-        slidesPerView={5} // default for desktop
-        breakpoints={{
-          0: {
-            slidesPerView: 1.2,
-            spaceBetween: 16,
-            centeredSlides: true,
-          },
-          640: {
-            slidesPerView: 2.2,
-            spaceBetween: 16,
-          },
-          1024: {
-            slidesPerView: 5,
-            spaceBetween: 8,
-          },
-        }}
+        slidesPerView={5}
+        centeredSlides
+        loop
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
         className="hero-swiper"
       >

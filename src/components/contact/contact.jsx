@@ -5,8 +5,8 @@ import { MapPin, Mail, Phone } from "lucide-react"; // <-- import icons
 
 export default function ContactForm() {
   return (
-    <div className="max-w-7xl mx-auto p-22 bg-gray-50 border border-gray-300 rounded-xl shadow-md mt-10">
-      <div className="grid grid-cols-1 md:grid-cols-2">
+    <div className="max-w-7xl mx-5 md:mx-auto p-12 md:p-22 bg-gray-50 border border-gray-300 rounded-xl shadow-md mt-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 sm:gap-y-0">
         {/* Left: Contact Info */}
         <div>
           <h2 className="text-4xl font-bold mb-6">Contact Us</h2>

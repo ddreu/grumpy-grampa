@@ -46,7 +46,7 @@ export default function FAQ() {
   const displayedFaqs = showAll ? filteredFaqs : filteredFaqs.slice(0, 5);
 
   return (
-    <section className="w-full max-w-6xl mx-auto py-16 mb-5 text-center">
+    <section className="w-full max-w-6xl px-5 sm:px-0 mx-auto py-16 mb-5 text-center">
       <h2 className="text-5xl font-extrabold text-neutral-950 tracking-normal mb-8">
         Frequently Asked Questions
       </h2>

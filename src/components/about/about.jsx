@@ -2,7 +2,7 @@
 
 export const AboutBanner = () => {
   return (
-    <section className="relative mt-6 mb-8 max-w-7xl mx-auto bg-black text-white rounded-3xl flex flex-col items-center justify-center py-15 px-6 text-center">
+    <section className="relative mt-6 mb-8 max-w-7xl mx-5 md:mx-auto bg-black text-white rounded-4xl md:rounded-3xl flex flex-col items-center justify-center py-15 px-6 text-center">
       <div className="absolute inset-0 bg-[url('/lines.svg')] bg-cover bg-center opacity-20 pointer-events-none" />
 
       <div className="relative z-10 border border-neutral-200 rounded-full px-4 py-1 text-sm mb-10">

@@ -53,7 +53,7 @@ export default function PaginationButtons({
       {/* Previous Button */}
       <button
         onClick={onPrevious}
-        className="px-6 py-2 text-neutral-950 rounded-full font-medium bg-neutral-200 hover:bg-neutral-300 transition"
+        className="px-6 py-2 cursor-pointer text-neutral-950 rounded-full font-medium bg-neutral-200 hover:bg-neutral-300 transition"
       >
         Previous
       </button>
@@ -77,7 +77,7 @@ export default function PaginationButtons({
       {/* Next Button */}
       <button
         onClick={onNext}
-        className="px-6 py-2 bg-neutral-950 text-neutral-50 rounded-full font-medium hover:bg-neutral-800 transition"
+        className="px-6 py-2 cursor-pointer bg-neutral-950 text-neutral-50 rounded-full font-medium hover:bg-neutral-800 transition"
       >
         Next
       </button>
