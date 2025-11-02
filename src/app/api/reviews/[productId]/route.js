@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
+  const params = await context.params; // ✅ await the params property
   const { productId } = params;
 
   try {

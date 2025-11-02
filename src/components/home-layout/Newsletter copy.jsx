@@ -2,9 +2,11 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-export default function NewsletterSection() {
+export default function NewsletterSection({ className = "" }) {
   return (
-    <section className="relative max-w-7xl mx-5 sm:mx-auto bg-black text-white rounded-4xl overflow-hidden flex flex-col md:flex-row items-center justify-between px-5 sm:px-0 pt-9">
+    <section
+      className={`relative max-w-7xl mx-5 sm:mx-auto bg-black text-white rounded-4xl overflow-hidden flex flex-col md:flex-row items-center justify-between px-5 sm:px-0 pt-9 ${className}`}
+    >
       {/* Background Pattern */}
       <div
         className="absolute inset-0 bg-[url('/lines.svg')] bg-cover bg-center opacity-20 pointer-events-none"
@@ -12,7 +14,7 @@ export default function NewsletterSection() {
       ></div>
 
       {/* Left: Image */}
-      <div className="relative z-10 flex items-end justify-center">
+      <div className="hidden sm:flex relative z-10 items-end justify-center">
         <Image
           src="/newsletter.png"
           alt="Elderly couple wearing white shirts"
@@ -24,15 +26,15 @@ export default function NewsletterSection() {
 
       {/* Right: Content */}
       <div className="relative z-10 md:w-1/2 text-center md:text-left">
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-2">
+        <h2 className="text-3xl md:text-4xl font-extrabold mb-5 sm:mb-2">
           Sign Up To Our Newsletter
         </h2>
-        <p className="text-gray-300 mb-6 text-sm md:text-base">
+        <p className="text-gray-300 mb-8 sm:mb-6 text-sm md:text-base">
           Subscribe to our newsletter and receive the latest news & amazing
           deals on Grumpy Grandpa.
         </p>
 
-        <form className="flex items-center bg-white/10 rounded-full overflow-hidden border border-white/20 max-w-md mx-auto md:mx-0">
+        <form className="flex items-center bg-white/10 rounded-full overflow-hidden border border-white/20 max-w-md mx-auto mb-8 sm:mb-0 sm:mx-0">
           <input
             type="email"
             placeholder="Your email address"

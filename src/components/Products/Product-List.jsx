@@ -4,27 +4,33 @@ import { fetchProducts, fetchCollectionsByGroup } from "../../lib/shopify";
 import { ArrowDown, Star } from "lucide-react";
 import CartIcon from "../icons/Cart";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Compare from "../icons/Compare";
 import Heart from "../icons/Heart";
 import { toast } from "sonner";
 
 import { useCart } from "@/context/CartContext";
 
-export function Product({ query: externalQuery = "" }) {
+export function Product({ query: externalQuery = "", filters = {} }) {
   const searchParams = useSearchParams();
-  const titleParam = searchParams.get("title") || "Products";
-  const tabsParam = searchParams.get("tabs");
   const queryParam = searchParams.get("query")?.toLowerCase() || "";
+
+  const titleParam = searchParams.get("title") || "Products";
+  const tabsParam = searchParams.get("tabs") || "";
   const [tabs, setTabs] = useState(tabsParam ? tabsParam.split(",") : []);
+  // const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
+
+  const [activeCollection, setActiveCollection] = useState("");
 
   const query = externalQuery ? externalQuery.toLowerCase() : queryParam;
+
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
-  const [activeCollection, setActiveCollection] = useState(tabs[0] || "");
   const { addToCart } = useCart();
 
   const [ratings, setRatings] = useState({});
+
+  const router = useRouter();
 
   //  Normalize function to make search forgiving
   const normalize = (str) =>
@@ -35,25 +41,63 @@ export function Product({ query: externalQuery = "" }) {
 
   const normalizedQuery = normalize(query);
 
+  // pull active filters directly from URL
+  const activeFilters = {
+    group: searchParams.get("group") || filters.group || null,
+    collection: searchParams.get("collection") || filters.collection || null,
+    review: searchParams.get("review") || filters.review || "All",
+    stockThreshold:
+      searchParams.get("stockThreshold") || filters.stockThreshold || null,
+    minPrice: searchParams.get("minPrice") || filters.minPrice || null,
+    maxPrice: searchParams.get("maxPrice") || filters.maxPrice || null,
+  };
+
+  const {
+    minPrice,
+    maxPrice,
+    review: selectedReview,
+    collection: category,
+    stockThreshold,
+  } = activeFilters;
+
   //  Filter products
   const filteredProducts = products.filter((product) => {
     const inCollection =
-      //  skip collection filtering during search
-      !normalizedQuery && activeCollection
-        ? product.collections?.some(
-            (collection) => collection.title === activeCollection
-          )
-        : true;
+      !category || category === "All"
+        ? true
+        : product.collections?.some(
+            (collection) =>
+              collection.title?.toLowerCase() === category?.toLowerCase()
+          ) ?? true;
 
     const matchesQuery = normalizedQuery
       ? normalize(product.title).includes(normalizedQuery) ||
-        // normalize(product.descriptionHtml || "").includes(normalizedQuery)
         normalize(
           product.description || product.descriptionHtml || ""
         ).includes(normalizedQuery)
       : true;
 
-    return inCollection && matchesQuery;
+    const currentPrice = parseFloat(product.variants[0]?.price?.amount || 0);
+    const withinPrice =
+      (!minPrice && !maxPrice) ||
+      (currentPrice >= (minPrice || 0) &&
+        currentPrice <= (maxPrice || Infinity));
+
+    const rating = ratings[product.id]?.averageRating || 0;
+    let matchesReview = true;
+    if (selectedReview && selectedReview !== "All") {
+      const [min, max] = selectedReview.includes("-")
+        ? selectedReview.split("-").map((n) => parseFloat(n))
+        : [parseFloat(selectedReview), 5.0];
+      matchesReview = rating >= min && rating <= max;
+    }
+
+    const quantityAvailable = product.variants[0]?.quantityAvailable || 0;
+    const meetsStock = !stockThreshold || quantityAvailable >= stockThreshold;
+
+    return (
+      inCollection && matchesQuery && withinPrice && matchesReview && meetsStock
+    );
   });
 
   const displayedProducts = showAll
@@ -121,17 +165,28 @@ export function Product({ query: externalQuery = "" }) {
   useEffect(() => {
     async function loadCollections() {
       if (!tabsParam) {
-        const groups = await fetchCollectionsByGroup(); // { Grandparents: [...], Theme: [...] }
+        const groups = await fetchCollectionsByGroup();
         const collections = groups[titleParam] || [];
         const collectionTitles = collections.map((c) => c.title);
         setTabs(collectionTitles);
-        setActiveCollection(collectionTitles[0] || ""); // default active
+        setActiveCollection(collectionTitles[0] || ""); // default first
       } else {
-        setActiveCollection(tabs[0]);
+        const paramTabs = tabsParam.split(",");
+        setTabs(paramTabs);
+        setActiveCollection(paramTabs[0] || "");
       }
     }
     loadCollections();
   }, [titleParam, tabsParam]);
+
+  useEffect(() => {
+    const collectionParam = searchParams.get("collection");
+    if (collectionParam) {
+      setActiveCollection(collectionParam);
+    } else if (tabs.length > 0) {
+      setActiveCollection(tabs[0]);
+    }
+  }, [searchParams, tabs]);
 
   if (products.length === 0)
     return (
@@ -168,9 +223,48 @@ export function Product({ query: externalQuery = "" }) {
         ) : (
           <div className="flex flex-wrap gap-3 mt-3">
             {tabs.map((collection) => (
+              // <button
+              //   key={collection}
+              //   onClick={() => {
+              //     setActiveCollection(collection);
+              //     const params = new URLSearchParams(searchParams);
+              //     params.set("tabs", tabs.join(",")); // keep all tabs in URL
+              //     params.set("collection", collection); // active collection filter
+              //     router.push(
+              //       `/Shop/${encodeURIComponent(
+              //         titleParam
+              //       )}?${params.toString()}`
+              //     );
+              //   }}
+              //   className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
+              //     activeCollection === collection
+              //       ? "bg-black text-white"
+              //       : "border border-neutral-950 text-neutral-900 hover:bg-gray-300"
+              //   }`}
+              // >
+              //   {collection}
+              // </button>
               <button
                 key={collection}
-                onClick={() => setActiveCollection(collection)}
+                onClick={() => {
+                  setActiveCollection(collection);
+
+                  const params = new URLSearchParams(searchParams);
+
+                  // Keep all other filters intact
+                  params.set("collection", collection);
+
+                  // Keep tabs for persistence
+                  params.set("tabs", tabs.join(","));
+
+                  // Update the URL
+                  router.push(
+                    `/Shop/${encodeURIComponent(
+                      titleParam
+                    )}?${params.toString()}`,
+                    { scroll: false }
+                  );
+                }}
                 className={`px-5 cursor-pointer py-2 rounded-full font-medium transition ${
                   activeCollection === collection
                     ? "bg-black text-white"
