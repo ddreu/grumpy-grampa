@@ -62,12 +62,6 @@ export default function ProductGrid({
     stockThreshold: null,
   });
 
-  // const handleDragChange = (newProgress) => {
-  //   const totalScrollable = products.length - itemsPerPage;
-  //   const newStart = Math.round((newProgress / 100) * totalScrollable);
-  //   setStartIndex(newStart);
-  // };
-
   const handleDragChange = (newProgress) => {
     const totalScrollable = Math.max(products.length - itemsPerPage, 0);
     const newStart = Math.round((newProgress / 100) * totalScrollable);
@@ -84,14 +78,6 @@ export default function ProductGrid({
   const DEFAULT_GROUP_ICON = Star;
 
   const visibleRatio = (itemsPerPage / products.length) * 100;
-
-  // async function handleAdd(product) {
-  //   const variant = product.variants?.[0]; //  take first variant as default
-  //   if (!variant) return; // if no variant, skip
-
-  //   await addToCart(variant.id, 1); //  add 1 quantity of that variant
-  //   alert(`${product.title} added to cart!`);
-  // }
 
   async function handleAdd(product) {
     const variant = product.variants?.[0];
@@ -167,27 +153,27 @@ export default function ProductGrid({
       const productCollectionTitles =
         product.collections?.map((c) => c.title) || [];
 
-      // ✅ use same variant-level data you show in UI
+      //  use same variant-level data you show in UI
       const variant = product.variants?.[0];
       const price = parseFloat(variant?.price?.amount || 0);
       const stock = parseInt(variant?.quantityAvailable ?? 0);
 
-      // ✅ group check
+      //  group check
       const inGroup = selectedCollections.some((col) =>
         productCollectionTitles.includes(col.title)
       );
       if (!inGroup) return false;
 
-      // ✅ collection filter
+      //  collection filter
       if (filters.collection && filters.collection !== "All") {
         if (!productCollectionTitles.includes(filters.collection)) return false;
       }
 
-      // ✅ price filters
+      //  price filters
       if (filters.minPrice && price < filters.minPrice) return false;
       if (filters.maxPrice && price > filters.maxPrice) return false;
 
-      // ✅ stock filters
+      //  stock filters
       if (filters.stockThreshold && stock < filters.stockThreshold)
         return false;
 
@@ -296,22 +282,13 @@ export default function ProductGrid({
                     const isActive = selectedGroup === tab.name;
 
                     return (
-                      // <button
-                      //   key={i}
-                      //   onClick={() => setSelectedGroup(tab.name)}
-                      //   className={`flex items-center gap-2 px-4 py-2 text-md font-medium border rounded-full transition-all ${
-                      //     isActive
-                      //       ? "bg-black text-white border-black"
-                      //       : "border-gray-300 hover:bg-black hover:text-white"
-                      //   }`}
-                      // >
                       <button
                         key={i}
                         onClick={() => {
                           setSelectedGroup(tab.name);
                           setStartIndex(0); // reset pagination when switching tabs
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 text-md font-medium border rounded-full transition-all ${
+                        className={`flex cursor-pointer items-center gap-2 px-4 py-2 text-md font-medium border rounded-full transition-all ${
                           isActive
                             ? "bg-black text-white border-black"
                             : "border-gray-300 hover:bg-black hover:text-white"
@@ -329,7 +306,7 @@ export default function ProductGrid({
                 <div className="relative">
                   <button
                     onClick={() => setIsFilterOpen((prev) => !prev)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
+                    className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
                   >
                     <Filter size={16} />
                     Filter By: All
@@ -344,7 +321,6 @@ export default function ProductGrid({
                       setSelectedCollection(collectionTitle);
                       setStartIndex(0);
                     }}
-                    // onGroupChange={(group) => setSelectedGroup(group)}
                     onGroupChange={(group) => {
                       setSelectedGroup(group);
                       setSelectedCollection("All");
@@ -364,12 +340,6 @@ export default function ProductGrid({
 
         {/* Product Grid Wrapper */}
         <div className="overflow-hidden relative pb-5">
-          {/* <div
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{
-              transform: `translateX(-${(startIndex / itemsPerPage) * 100}%)`,
-            }}
-          > */}
           <div
             className="flex transition-transform duration-500 ease-in-out"
             style={{
@@ -378,13 +348,6 @@ export default function ProductGrid({
           >
             {products.length === 0 ? (
               <div className="w-full text-center py-20">
-                {/* <Image
-                  src="/placeholder.png"
-                  alt="No products found"
-                  width={150}
-                  height={150}
-                  className="mx-auto mb-4 opacity-70"
-                /> */}
                 <p className="text-gray-500 text-lg">
                   No products found for this category.
                 </p>
@@ -448,13 +411,6 @@ export default function ProductGrid({
 
                         <div className="p-4">
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-                            {/* <span className="flex items-center gap-1">
-                            <Star
-                              size={16}
-                              className="fill-yellow-500 text-yellow-500"
-                            />
-                            5.0 (260 Reviews)
-                          </span> */}
                             <div className="flex items-center gap-1">
                               {Array.from({ length: 5 }).map((_, i) => (
                                 <Star
