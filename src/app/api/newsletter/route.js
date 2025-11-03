@@ -1,85 +1,67 @@
 import { NextResponse } from "next/server";
 
-const domain = process.env.SHOPIFY_ADMIN_DOMAIN;
-const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-const ADMIN_API = `https://${domain}/admin/api/2025-10/graphql.json`;
-
-async function shopifyRequest(query, variables = {}) {
-  const res = await fetch(ADMIN_API, {
-    method: "POST",
-    headers: {
-      "X-Shopify-Access-Token": token,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  return res.json();
-}
-
-const GET_CUSTOMER_BY_EMAIL = `
-  query getCustomerByEmail($email: String!) {
-    customers(first: 1, query: $email) {
-      nodes {
-        id
-        email
-        acceptsMarketing
-      }
-    }
-  }
-`;
-
-const CREATE_CUSTOMER = `
-  mutation createCustomer($email: String!) {
-    customerCreate(input: {email: $email, acceptsMarketing: true}) {
-      customer { id email }
-      userErrors { field message }
-    }
-  }
-`;
-
-const UPDATE_CUSTOMER = `
-  mutation updateCustomer($id: ID!) {
-    customerUpdate(input: {id: $id, acceptsMarketing: true}) {
-      customer { id email acceptsMarketing }
-      userErrors { field message }
-    }
-  }
-`;
-
 export async function POST(req) {
   const { email } = await req.json();
-  if (!email)
-    return NextResponse.json({ error: "Email is required" }, { status: 400 });
+
+  if (!email) {
+    return NextResponse.json({ success: false, error: "Email is required" });
+  }
 
   try {
-    // Check if customer exists
-    const data = await shopifyRequest(GET_CUSTOMER_BY_EMAIL, { email });
-    const customer = data.data.customers.nodes[0];
-
-    if (customer) {
-      const update = await shopifyRequest(UPDATE_CUSTOMER, { id: customer.id });
-      return NextResponse.json({
-        success: true,
-        customer: update.data.customerUpdate.customer,
-      });
-    } else {
-      const create = await shopifyRequest(CREATE_CUSTOMER, { email });
-      if (create.data.customerCreate.userErrors.length) {
-        return NextResponse.json(
-          { error: create.data.customerCreate.userErrors },
-          { status: 400 }
-        );
+    const response = await fetch(
+      "https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Klaviyo-API-Key ${process.env.KLAVIYO_PRIVATE_API_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Revision: "2024-10-15",
+        },
+        body: JSON.stringify({
+          data: {
+            type: "profile-subscription-bulk-create-job",
+            attributes: {
+              profiles: {
+                data: [
+                  {
+                    type: "profile",
+                    attributes: {
+                      email,
+                    },
+                  },
+                ],
+              },
+            },
+            relationships: {
+              list: {
+                data: {
+                  type: "list",
+                  id: process.env.NEXT_PUBLIC_KLAVIYO_LIST_ID,
+                },
+              },
+            },
+          },
+        }),
       }
-      return NextResponse.json({
-        success: true,
-        customer: create.data.customerCreate.customer,
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
     );
+
+    // Safely parse JSON if available
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      console.error("Klaviyo API error:", JSON.stringify(data, null, 2));
+      throw new Error(JSON.stringify(data));
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (err) {
+    console.error("Klaviyo error:", err.message);
+    return NextResponse.json({ success: false, error: err.message });
   }
 }

@@ -1,17 +1,16 @@
 "use client";
-import { useState } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function NewsletterSection({ className = "" }) {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(""); // <-- Add this
+  const [status, setStatus] = useState("idle");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setStatus(""); // reset status
+    setStatus("loading");
 
     try {
       const res = await fetch("/api/newsletter", {
@@ -21,38 +20,49 @@ export default function NewsletterSection({ className = "" }) {
       });
 
       const data = await res.json();
+
       if (data.success) {
-        setStatus("success"); // <-- success
+        setStatus("success");
         setEmail("");
+        toast.success("Thanks for subscribing!", {
+          description: "You are now signed up for our newsletter.",
+        });
       } else {
-        setStatus("error"); // <-- error
-        console.error(data.error);
+        setStatus("error");
+        toast.error("Something went wrong.", {
+          description: "Please try again later.",
+        });
       }
     } catch (err) {
-      setStatus("error"); // <-- error
-      console.error(err);
+      setStatus("error");
+      toast.error("An unexpected error occurred.", {
+        description: "Please try again later.",
+      });
     }
-
-    setLoading(false);
   };
 
   return (
     <section
       className={`relative max-w-7xl mx-5 sm:mx-auto bg-black text-white rounded-4xl overflow-hidden flex flex-col md:flex-row items-center justify-between px-5 sm:px-0 pt-9 ${className}`}
     >
+      {/* background */}
       <div
         className="absolute inset-0 bg-[url('/lines.svg')] bg-cover bg-center opacity-20 pointer-events-none"
         aria-hidden="true"
-      />
+      ></div>
+
+      {/* image */}
       <div className="hidden sm:flex relative z-10 items-end justify-center">
         <Image
           src="/newsletter.png"
-          alt="Elderly couple wearing white shirts"
+          alt="Newsletter illustration"
           width={550}
           height={550}
           className="object-contain"
         />
       </div>
+
+      {/* form */}
       <div className="relative z-10 md:w-1/2 text-center md:text-left">
         <h2 className="text-3xl md:text-4xl font-extrabold mb-5 sm:mb-2">
           Sign Up To Our Newsletter
@@ -71,24 +81,17 @@ export default function NewsletterSection({ className = "" }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Your email address"
-            className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
             required
+            className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
           />
           <button
             type="submit"
-            className="bg-white text-black p-3 rounded-full hover:bg-gray-200 transition"
-            disabled={loading}
+            className="bg-white cursor-pointer text-black p-3 rounded-full hover:bg-gray-200 transition disabled:opacity-50"
+            disabled={status === "loading"}
           >
             <ArrowRight size={20} />
           </button>
         </form>
-
-        {status === "success" && (
-          <p className="text-green-400 mt-2">Subscribed successfully!</p>
-        )}
-        {status === "error" && (
-          <p className="text-red-400 mt-2">Failed to subscribe. Try again.</p>
-        )}
       </div>
     </section>
   );

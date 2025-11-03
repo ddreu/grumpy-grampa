@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
 import PaginationButtons from "../../Buttons/PaginationsButton";
 import QuoteIcon from "@/components/icons/Quote";
+import Link from "next/link";
 
 export default function CustomerReviews() {
   const [reviews, setReviews] = useState([]);
@@ -58,10 +59,12 @@ export default function CustomerReviews() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 border border-neutral-950 text-neutral-950 rounded-full px-6 py-2 text-sm font-medium hover:bg-neutral-950 hover:text-white transition">
-          View All
-          <ArrowRight size={20} />
-        </button>
+        <Link href="/Reviews" passHref>
+          <button className="flex cursor-pointer items-center gap-2 border border-neutral-950 text-neutral-950 rounded-full px-6 py-2 text-sm font-medium hover:bg-neutral-950 hover:text-white transition">
+            View All
+            <ArrowRight size={20} />
+          </button>
+        </Link>
       </div>
 
       {/* Carousel */}
