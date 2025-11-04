@@ -19,7 +19,6 @@ import { useCart } from "@/context/CartContext";
 import { fetchCollectionsByGroup } from "@/lib/shopify";
 import { Menu } from "lucide-react";
 import MobileMenu from "./MobileMenu";
-import ShopDropdown from "./ShopDropdown";
 
 export function Navbar({ buttonLabel, buttonHref }) {
   const pathname = usePathname();
@@ -108,11 +107,33 @@ export function Navbar({ buttonLabel, buttonHref }) {
 
                   {/* Shop Dropdown */}
                   {item.dropdown && (
-                    <ShopDropdown
-                      dropdownGroups={dropdownGroups}
-                      shopOpen={shopOpen}
-                      setShopOpen={setShopOpen}
-                    />
+                    <ul
+                      className={`absolute z-20 left-1/2 w-50 -translate-x-1/2 top-full mt-2 bg-neutral-50 shadow-md rounded-xl overflow-hidden transition-all duration-300 ${
+                        shopOpen
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible translate-y-2"
+                      }`}
+                      onMouseEnter={() => setShopOpen(true)}
+                      onMouseLeave={() => setShopOpen(false)}
+                    >
+                      {dropdownGroups.map((group) => (
+                        <li key={group.title}>
+                          <Link
+                            href={`/Shop/${encodeURIComponent(
+                              group.title
+                            )}?title=${encodeURIComponent(
+                              group.title
+                            )}&tabs=${encodeURIComponent(
+                              group.tabs.join(",")
+                            )}`}
+                            className="flex items-center gap-3 px-5 py-2 text-sm text-neutral-900 hover:bg-neutral-900 hover:text-white transition"
+                          >
+                            {group.icon}
+                            {group.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </li>
               );
