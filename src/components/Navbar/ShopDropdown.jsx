@@ -23,20 +23,25 @@ export default function ShopDropdown({
             <Link
               href={`/Shop/${encodeURIComponent(
                 group.title
-              )}?title=${encodeURIComponent(
+              )}?group=${encodeURIComponent(
+                group.title
+              )}&title=${encodeURIComponent(
                 group.title
               )}&collection=${encodeURIComponent(group.tabs[0])}`}
               className="block text-lg font-semibold text-neutral-900 hover:text-neutral-700 transition"
             >
               {group.title}
             </Link>
+
             <ul className="space-y-2">
               {group.tabs.map((category) => (
                 <li key={category}>
                   <Link
                     href={`/Shop/${encodeURIComponent(
                       group.title
-                    )}?title=${encodeURIComponent(
+                    )}?group=${encodeURIComponent(
+                      group.title
+                    )}&title=${encodeURIComponent(
                       group.title
                     )}&collection=${encodeURIComponent(
                       category

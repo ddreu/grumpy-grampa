@@ -57,6 +57,7 @@ export default function Shop() {
             <ProductGrid
               key={groupName}
               title={groupName}
+              group={groupName}
               tabs={collections.map((c) => c.title)}
               showFilter={false}
               className="py-6"

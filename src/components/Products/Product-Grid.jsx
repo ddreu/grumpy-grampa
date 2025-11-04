@@ -34,6 +34,7 @@ export default function ProductGrid({
   showFilter = true,
   className = "",
   viewAllUrl = "#",
+  group = null,
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,11 +127,88 @@ export default function ProductGrid({
   }, [displayTabs, selectedGroup]);
 
   useEffect(() => {
+    if (!groupedCollections || !allProducts.length) return;
+
+    let filtered = allProducts;
+
+    if (group) {
+      // in Shop page
+      const selectedCollections = groupedCollections[group] || [];
+
+      filtered = filtered.filter((product) => {
+        const productCollectionTitles =
+          product.collections?.map((c) => c.title) || [];
+
+        const inGroup = selectedCollections.some((col) =>
+          productCollectionTitles.includes(col.title)
+        );
+
+        const inCollection =
+          !selectedCollection || selectedCollection === "All"
+            ? true
+            : productCollectionTitles.includes(selectedCollection);
+
+        return inGroup && inCollection;
+      });
+    } else if (selectedGroup) {
+      // in Home page
+      const selectedCollections = groupedCollections[selectedGroup] || [];
+      filtered = filtered.filter((product) => {
+        const productCollectionTitles =
+          product.collections?.map((c) => c.title) || [];
+        return selectedCollections.some((col) =>
+          productCollectionTitles.includes(col.title)
+        );
+      });
+    }
+
+    setProducts(filtered);
+  }, [
+    group,
+    selectedGroup,
+    selectedCollection,
+    groupedCollections,
+    allProducts,
+  ]);
+
+  // useEffect(() => {
+  //   async function loadProducts() {
+  //     try {
+  //       const data = await fetchProducts();
+  //       setAllProducts(data); // store all products
+  //       setProducts(data); // initial products before filter
+  //     } catch (error) {
+  //       console.error("Error fetching products:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  //   loadProducts();
+  // }, []);
+
+  useEffect(() => {
     async function loadProducts() {
       try {
         const data = await fetchProducts();
-        setAllProducts(data); // store all products
-        setProducts(data); // initial products before filter
+        setAllProducts(data);
+
+        if (group) {
+          // fetch grouped collections once (or you already have groupedCollections)
+          const groups = await fetchCollectionsByGroup();
+          const selectedCollections = groups[group] || [];
+
+          const filtered = data.filter((product) => {
+            const productCollectionTitles =
+              product.collections?.map((c) => c.title) || [];
+            return selectedCollections.some((col) =>
+              productCollectionTitles.includes(col.title)
+            );
+          });
+
+          setProducts(filtered);
+        } else {
+          setProducts(data);
+        }
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -138,7 +216,7 @@ export default function ProductGrid({
       }
     }
     loadProducts();
-  }, []);
+  }, [group]);
 
   useEffect(() => {
     if (!selectedGroup || !Object.keys(groupedCollections).length) return;
@@ -279,14 +357,27 @@ export default function ProductGrid({
                 <div className="flex flex-wrap justify-start gap-3">
                   {displayTabs.map((tab, i) => {
                     const IconComponent = tab.icon;
-                    const isActive = selectedGroup === tab.name;
+                    // const isActive = selectedGroup === tab.name;
+                    const isActive = group
+                      ? selectedCollection === tab.name
+                      : selectedGroup === tab.name;
 
                     return (
+                      // <button
+                      //   key={i}
+                      //   onClick={() => {
+                      //     setSelectedGroup(tab.name);
+                      //     setStartIndex(0); // reset pagination when switching tabs
+                      //   }}
                       <button
                         key={i}
                         onClick={() => {
-                          setSelectedGroup(tab.name);
-                          setStartIndex(0); // reset pagination when switching tabs
+                          if (group) {
+                            setSelectedCollection(tab.name); // in Shop (collections are tabs)
+                          } else {
+                            setSelectedGroup(tab.name); // in Home (groups are tabs)
+                          }
+                          setStartIndex(0);
                         }}
                         className={`flex cursor-pointer items-center gap-2 px-4 py-2 text-md font-medium border rounded-full transition-all ${
                           isActive
@@ -306,15 +397,15 @@ export default function ProductGrid({
                 <div className="relative">
                   <button
                     onClick={() => setIsFilterOpen((prev) => !prev)}
-                    className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition"
+                    className="flex sm:hidden items-center gap-2 px-4 py-2 border rounded-full text-sm"
                   >
                     <Filter size={16} />
                     Filter By: All
                   </button>
 
                   <FilterDropdown
-                    open={isFilterOpen}
-                    onClose={() => setIsFilterOpen(false)}
+                    open={isFilterOpen} // ✅ pass open
+                    onClose={() => setIsFilterOpen(false)} // ✅ pass close
                     selectedGroup={selectedGroup}
                     selectedCollection={selectedCollection}
                     onCollectionChange={(collectionTitle) => {

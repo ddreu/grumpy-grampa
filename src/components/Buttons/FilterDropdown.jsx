@@ -1,11 +1,16 @@
 "use client";
-import { Check } from "lucide-react";
+import { Check, Filter } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query"; // We'll make this tiny hook below
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { DialogTitle } from "@/components/ui/dialog";
-
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 
 export default function FilterDropdown({
   open,
@@ -16,13 +21,13 @@ export default function FilterDropdown({
   selectedCollection,
   onGroupChange,
   onCollectionChange,
-  onFiltersApply, // ✅ added: callback for filters
+  onFiltersApply,
 }) {
   const dropdownRef = useRef(null);
   const [collections, setCollections] = useState([]);
-  const [stockThreshold, setStockThreshold] = useState(""); // ✅ new
-  const [minPrice, setMinPrice] = useState(""); // ✅ new
-  const [maxPrice, setMaxPrice] = useState(""); // ✅ new
+  const [stockThreshold, setStockThreshold] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [selectedReview, setSelectedReview] = useState("All");
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -39,19 +44,6 @@ export default function FilterDropdown({
     }
   }, [selectedGroup, groupedCollections]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        onClose?.();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  if (!open) return null;
-
-  // apply filters when button clicked
   const handleApply = () => {
     onFiltersApply?.({
       group: selectedGroup || null,
@@ -59,16 +51,21 @@ export default function FilterDropdown({
       stockThreshold: stockThreshold ? parseInt(stockThreshold) : null,
       minPrice: minPrice ? parseFloat(minPrice) : null,
       maxPrice: maxPrice ? parseFloat(maxPrice) : null,
-      review: selectedReview || "All", // ✅ include review
+      review: selectedReview || "All",
     });
     onClose?.();
   };
 
   const FilterContent = (
+    // <div
+    //   ref={dropdownRef}
+    //   // className="w-64 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+    //   className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+    // >
     <div
       ref={dropdownRef}
-      // className="w-64 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
-      className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+      className="w-full sm:w-72 z-50 p-4 text-sm"
+      // className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
     >
       {/* If a group is selected → show collections */}
       {hasSelectedGroup ? (
@@ -212,7 +209,20 @@ export default function FilterDropdown({
   );
 
   if (isDesktop) {
-    return <div>{FilterContent}</div>;
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full border-gray-300 hover:bg-black hover:text-white transition">
+            <Filter size={16} />
+            Filter By: All
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" sideOffset={8}>
+          {FilterContent}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   }
 
   return (
