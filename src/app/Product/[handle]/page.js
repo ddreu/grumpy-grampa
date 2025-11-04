@@ -1,4 +1,5 @@
 // app/Product/[handle]/page.js
+import FeatureCards from "@/components/about/FeatureCards";
 import Footer from "@/components/Footer/Footer";
 import FAQ from "@/components/home-layout/Faq";
 import NewsletterSection from "@/components/home-layout/Newsletter";
@@ -30,6 +31,7 @@ export default async function ProductPage({ params }) {
       <main className="pt-0 pb-8 bg-neutral-50 overflow-hidden">
         <Navbar />
         <ProductView product={product} />
+        <FeatureCards />
         <FAQ />
         <NewsletterSection />
       </main>
