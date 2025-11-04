@@ -127,7 +127,7 @@ export default function ProductView({ product }) {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-6 md:px-10 py-12">
+    <section className="max-w-7xl mx-auto px-6 md:px-10 py-12 mb-8">
       {/* ===== Breadcrumb ===== */}
       <Breadcrumb className="mb-8">
         <BreadcrumbList>

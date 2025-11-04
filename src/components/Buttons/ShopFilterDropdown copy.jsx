@@ -1,7 +1,13 @@
 "use client";
+
 import { useRef, useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useMediaQuery } from "@/hooks/use-media-query"; // We'll make this tiny hook below
 
 export default function ShopFilterDropdown({
   open,
@@ -13,34 +19,23 @@ export default function ShopFilterDropdown({
   onFiltersApply,
 }) {
   const dropdownRef = useRef(null);
-
-  // Local states
-  const [selectedGroup, setSelectedGroup] = useState(null); // preview
-  const [appliedGroup, setAppliedGroup] = useState(null); // applied
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [appliedGroup, setAppliedGroup] = useState(null);
   const [selectedReview, setSelectedReview] = useState("All");
   const [stockThreshold, setStockThreshold] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const currentCollection = searchParams.get("collection") || "All";
-
-  useEffect(() => {
-    setSelectedReview(searchParams.get("review") || "All");
-    setStockThreshold(searchParams.get("stockThreshold") || "");
-    setMinPrice(searchParams.get("minPrice") || "");
-    setMaxPrice(searchParams.get("maxPrice") || "");
-    setSelectedGroup(searchParams.get("group") || null);
-  }, [searchParams]);
 
   const handleApply = () => {
     if (!selectedGroup) return;
+    setAppliedGroup(selectedGroup);
 
     const params = new URLSearchParams(searchParams);
 
-    // Keep standard filters
     if (selectedReview && selectedReview !== "All")
       params.set("review", selectedReview);
     else params.delete("review");
@@ -54,7 +49,9 @@ export default function ShopFilterDropdown({
     if (maxPrice) params.set("maxPrice", maxPrice);
     else params.delete("maxPrice");
 
-    // Now set up our new structure
+    // ✅ Add this line
+    params.set("group", selectedGroup);
+
     const title = selectedGroup;
     const tabs =
       groupedCollections[selectedGroup]?.map((col) => col.title).join(",") ||
@@ -63,9 +60,7 @@ export default function ShopFilterDropdown({
     params.set("title", title);
     params.set("tabs", tabs);
 
-    // Push to new dynamic route
     router.push(`/Shop/${encodeURIComponent(title)}?${params.toString()}`);
-
     onClose?.();
   };
 
@@ -75,69 +70,71 @@ export default function ShopFilterDropdown({
     router.push(
       `/Shop/${encodeURIComponent(selectedGroup || "All")}?${params.toString()}`
     );
-    onCollectionChange?.(collection); // notify parent if needed
+    onCollectionChange?.(collection);
   };
 
-  // Close dropdown on click outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    if (!open) return;
+
+    // Create a plain object snapshot of current URL params
+    const params = Object.fromEntries(searchParams.entries());
+
+    setSelectedGroup(params.group || null);
+    setAppliedGroup(params.group || null);
+    setSelectedReview(params.review || "All");
+    setStockThreshold(params.stockThreshold || "");
+    setMinPrice(params.minPrice || "");
+    setMaxPrice(params.maxPrice || "");
+  }, [open, searchParams.toString()]);
+
+  useEffect(() => {
+    if (!isDesktop || !open) return;
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         onClose?.();
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
 
-  useEffect(() => {
-    // Get values from URL
-    const titleFromUrl = searchParams.get("title") || "All"; // default to All
-    const tabsFromUrl = searchParams.get("tabs") || "";
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDesktop, open, onClose]);
 
-    setSelectedGroup(titleFromUrl);
-    setAppliedGroup(titleFromUrl !== "All" ? titleFromUrl : null);
-    setSelectedReview(searchParams.get("review") || "All");
-    setStockThreshold(searchParams.get("stockThreshold") || "");
-    setMinPrice(searchParams.get("minPrice") || "");
-    setMaxPrice(searchParams.get("maxPrice") || "");
-  }, [searchParams]);
-
-  if (!open) return null;
-
-  return (
+  // Extracted content to reuse inside Dialog or Drawer
+  const FilterContent = (
     <div
       ref={dropdownRef}
-      className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+      className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
     >
-      {/* Category selection */}
       {!appliedGroup && (
         <>
           <h3 className="text-xs text-left font-bold mb-1 uppercase text-gray-700">
             Shop By Categories
           </h3>
           <div className="flex flex-col gap-3">
-            {/* "All" option */}
-            <label className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer text-gray-800">
               <input
                 type="checkbox"
                 checked={selectedGroup === "All" || !selectedGroup}
                 onChange={() => setSelectedGroup("All")}
-                className="accent-gray-800 w-4 h-4 cursor-pointer"
+                className="accent-gray-800 w-4 h-4"
               />
               All
             </label>
 
-            {/* Other groups */}
             {groups.map((g, i) => (
               <label
                 key={i}
-                className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-gray-800"
               >
                 <input
                   type="checkbox"
                   checked={selectedGroup === g.name}
                   onChange={() => setSelectedGroup(g.name)}
-                  className="accent-gray-800 w-4 h-4 cursor-pointer"
+                  className="accent-gray-800 w-4 h-4"
                 />
                 {g.name}
               </label>
@@ -146,7 +143,6 @@ export default function ShopFilterDropdown({
         </>
       )}
 
-      {/* Filter By Shop (collections) */}
       {appliedGroup && (
         <>
           <h3 className="text-xs text-left font-bold mb-1 uppercase text-gray-700">
@@ -155,19 +151,18 @@ export default function ShopFilterDropdown({
           <div className="flex flex-col gap-1">
             <button
               onClick={() => handleCollectionChange("All")}
-              className="w-full flex justify-between items-center py-1 cursor-pointer text-left hover:text-black"
+              className="flex justify-between items-center py-1 hover:text-black"
             >
               <span>All</span>
               {currentCollection === "All" && (
                 <Check className="w-4 h-4 text-black" />
               )}
             </button>
-
             {(groupedCollections[appliedGroup] || []).map((col) => (
               <button
                 key={col.id}
                 onClick={() => handleCollectionChange(col.title)}
-                className="w-full flex justify-between items-center py-1 cursor-pointer text-left hover:text-black"
+                className="flex justify-between items-center py-1 hover:text-black"
               >
                 <span>{col.title}</span>
                 {currentCollection === col.title && (
@@ -179,7 +174,6 @@ export default function ShopFilterDropdown({
         </>
       )}
 
-      {/* Filter by Reviews */}
       <div className="mt-4 mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Reviews
@@ -195,13 +189,13 @@ export default function ShopFilterDropdown({
           ].map((label, i) => (
             <label
               key={i}
-              className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer text-gray-800"
             >
               <input
                 type="checkbox"
                 checked={selectedReview === label}
                 onChange={() => setSelectedReview(label)}
-                className="accent-gray-800 w-4 h-4 cursor-pointer"
+                className="accent-gray-800 w-4 h-4"
               />
               {label}
             </label>
@@ -209,7 +203,6 @@ export default function ShopFilterDropdown({
         </div>
       </div>
 
-      {/* Filter by Stocks */}
       <div className="mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Stocks
@@ -223,7 +216,6 @@ export default function ShopFilterDropdown({
         />
       </div>
 
-      {/* Filter by Price */}
       <div className="mb-4">
         <h3 className="text-xs text-left font-bold text-gray-700 mb-1 uppercase">
           Filter By Price
@@ -259,5 +251,21 @@ export default function ShopFilterDropdown({
         Apply
       </button>
     </div>
+  );
+  if (isDesktop) {
+    return <div ref={dropdownRef}>{FilterContent}</div>;
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onClose} direction="bottom">
+      <DrawerContent className="bg-white rounded-t-2xl max-h-[80vh] overflow-y-hidden p-4">
+        <VisuallyHidden>
+          <DialogTitle>Filter Options</DialogTitle>
+        </VisuallyHidden>
+        <div ref={dropdownRef} className="w-full sm:w-72">
+          {FilterContent}
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
