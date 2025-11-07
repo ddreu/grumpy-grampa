@@ -2,7 +2,8 @@ version: "3.7"
 
 services:
   grumpygrampa:
-    build: ./grumpy-grampa
+    # build: ./grumpy-grampa
+    build: .
     working_dir: /app
     command: npm run start
     labels:
@@ -10,10 +11,10 @@ services:
       - "traefik.http.routers.grumpygrampa.rule=Host(`grumpygrampa.co`)"
       - "traefik.http.routers.grumpygrampa.entrypoints=websecure"
       - "traefik.http.routers.grumpygrampa.tls.certresolver=myresolver"
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     env_file:
-      - ./grumpy-grampa/.env
+      - ./.env
     networks:
       - traefik-net
 
