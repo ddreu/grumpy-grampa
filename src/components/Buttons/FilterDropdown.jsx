@@ -64,7 +64,7 @@ export default function FilterDropdown({
     // >
     <div
       ref={dropdownRef}
-      className="w-full sm:w-72 z-50 p-4 text-sm"
+      className="w-full sm:w-72 z-50 p-0 md:p-4 text-sm"
       // className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
     >
       {/* If a group is selected → show collections */}
@@ -201,7 +201,7 @@ export default function FilterDropdown({
 
       <button
         onClick={handleApply}
-        className="w-full bg-black text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
+        className="w-full hidden md:block bg-black text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
       >
         Apply
       </button>
@@ -227,12 +227,39 @@ export default function FilterDropdown({
 
   return (
     <Drawer open={open} onOpenChange={onClose} direction="bottom">
-      <DrawerContent className="bg-white rounded-t-2xl p-4 max-h-[80vh]">
+      <DrawerContent className="bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
         <VisuallyHidden>
           <DialogTitle>Filter Options</DialogTitle>
         </VisuallyHidden>
-        {FilterContent}
+
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto flex-1 p-4 pb-2">
+          <div ref={dropdownRef} className="w-full sm:w-72 text-sm">
+            {/* everything in FilterContent EXCEPT the Apply button */}
+            {/* move the Apply button out below */}
+            {FilterContent}
+          </div>
+        </div>
+
+        {/* Fixed bottom action bar */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleApply}
+            className="w-full bg-black cursor-pointer text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
+          >
+            Apply
+          </button>
+        </div>
       </DrawerContent>
     </Drawer>
+
+    // <Drawer open={open} onOpenChange={onClose} direction="bottom">
+    //   <DrawerContent className="bg-white rounded-t-2xl p-4 max-h-[80vh]">
+    //     <VisuallyHidden>
+    //       <DialogTitle>Filter Options</DialogTitle>
+    //     </VisuallyHidden>
+    //     {FilterContent}
+    //   </DrawerContent>
+    // </Drawer>
   );
 }
