@@ -107,7 +107,7 @@ export default function ShopFilterDropdown({
   const FilterContent = (
     <div
       ref={dropdownRef}
-      className="w-full mt-3 sm:w-72 bg-white shadow-xl rounded-lg border border-gray-200 z-50 p-4 text-sm"
+      className="w-full sm:w-72 bg-white shadow-xl rounded-lg z-50 text-sm m-0 p-0 md:m-3 md:p-4"
     >
       {!appliedGroup && (
         <>
@@ -246,7 +246,7 @@ export default function ShopFilterDropdown({
 
       <button
         onClick={handleApply}
-        className="w-full bg-black cursor-pointer text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
+        className="w-full hidden md:block bg-black cursor-pointer text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
       >
         Apply
       </button>
@@ -258,14 +258,41 @@ export default function ShopFilterDropdown({
 
   return (
     <Drawer open={open} onOpenChange={onClose} direction="bottom">
-      <DrawerContent className="bg-white rounded-t-2xl max-h-[80vh] overflow-y-hidden p-4">
+      <DrawerContent className="bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
         <VisuallyHidden>
           <DialogTitle>Filter Options</DialogTitle>
         </VisuallyHidden>
-        <div ref={dropdownRef} className="w-full sm:w-72">
-          {FilterContent}
+
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto flex-1 p-4 pb-2">
+          <div ref={dropdownRef} className="w-full sm:w-72 text-sm">
+            {/* everything in FilterContent EXCEPT the Apply button */}
+            {/* move the Apply button out below */}
+            {FilterContent}
+          </div>
+        </div>
+
+        {/* Fixed bottom action bar */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleApply}
+            className="w-full bg-black cursor-pointer text-white py-1.5 rounded-md font-medium hover:bg-gray-800 transition text-sm"
+          >
+            Apply
+          </button>
         </div>
       </DrawerContent>
     </Drawer>
+
+    // <Drawer open={open} onOpenChange={onClose} direction="bottom">
+    //   <DrawerContent className="bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto p-4">
+    //     <VisuallyHidden>
+    //       <DialogTitle>Filter Options</DialogTitle>
+    //     </VisuallyHidden>
+    //     {/* <div ref={dropdownRef} className="w-full sm:w-72"> */}
+    //     {FilterContent}
+    //     {/* </div> */}
+    //   </DrawerContent>
+    // </Drawer>
   );
 }
