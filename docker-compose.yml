@@ -6,6 +6,8 @@ services:
     build: .
     working_dir: /app
     command: npm run start
+    restart: always
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grumpygrampa.rule=Host(`grumpygrampa.co`)"
